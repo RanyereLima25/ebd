@@ -1,0 +1,88 @@
+{% extends 'base.html' %}
+
+{% block title %}Visualizar Cadastros{% endblock %}
+
+{% block content %} 
+<h2 class="mb-4">Lista de Cadastros</h2>
+
+<div class="d-flex justify-content-between mb-3">
+    <p class="text-muted">Usuário logado: <strong>{{ usuario }}</strong></p>
+</div>
+
+<form method="GET" action="{{ url_for('visualizar') }}" class="row g-3 mb-4">
+    <div class="col-md-5">
+        <input type="text" class="form-control" name="busca" 
+               placeholder="Buscar por nome" 
+               value="{{ request.args.get('busca', '') }}">
+    </div>
+
+    <div class="col-md-4">
+        <select class="form-select" name="ordem">
+            <option value="">Filtrar por</option>
+            <option value="aluno" {% if request.args.get('ordem') == 'aluno' %}selected{% endif %}>Aluno</option>
+            <option value="professor" {% if request.args.get('ordem') == 'professor' %}selected{% endif %}>Professor</option>
+            <option value="classe" {% if request.args.get('ordem') == 'classe' %}selected{% endif %}>Classe (Curso)</option>
+        </select>
+    </div>
+
+    <div class="col-md-3">
+        <button type="submit" class="btn btn-primary w-100">Filtrar</button>
+    </div>
+</form>
+
+<h5 class="text-muted">Total de cadastros: {{ total }}</h5>
+
+<table class="table table-bordered table-striped">
+    <thead class="table-primary">
+        <tr>
+            <th>Nome</th>
+            <th>CPF</th>
+            <th>Classe</th>
+            <th>Email</th>
+            <th>Telefone</th>
+            <th>Tipo</th>
+            <th class="text-center">Ações</th>
+        </tr>
+    </thead>
+    <tbody>
+        {% for pessoa in pessoas %}
+            {% set busca = request.args.get('busca', '').lower() %}
+            {% set ordem = request.args.get('ordem', '') %}
+            {% set classe = (pessoa.classe or '').lower() %}
+
+            {% if (busca in pessoa.nome.lower() or busca in classe or busca == '') %}
+                {% if ordem == 'aluno' and pessoa.tipo == 'Aluno' %}
+                    {% include 'linha.html' %}
+                {% elif ordem == 'professor' and pessoa.tipo == 'Professor' %}
+                    {% include 'linha.html' %}
+                {% elif ordem == 'classe' %}
+                    {% include 'linha.html' %}
+                {% elif ordem == '' %}
+                    {% include 'linha.html' %}
+                {% endif %}
+            {% endif %}
+        {% endfor %}
+    </tbody>
+</table>
+
+<footer style="
+    background-color: #f8f9fa;
+    padding: 1.5rem 1rem;
+    text-align: center;
+    font-family: 'Georgia', serif;
+    color: #444;
+    border-top: 1px solid #ddd;
+    margin-top: 3rem;
+    ">
+    <p style="font-size: 1rem; font-style: italic; max-width: 600px; margin: 0 auto 0.5rem;">
+        “Dai graças em todas as circunstâncias, pois esta é a vontade de Deus para vocês em Cristo Jesus.”
+    </p>
+    <p style="font-weight: bold; font-size: 0.9rem; color: #2c3e50; margin-bottom: 1rem;">
+        — 1 Tessalonicenses 5:18
+    </p>
+    <p style="font-size: 0.85rem; color: #999; letter-spacing: 1px; margin-top: 1rem;">
+        <span style="font-weight: 700; color: #1a1a1a;">Registrado:</span> Ranyere Lima
+    </p>
+</footer>
+
+{% endblock %}
