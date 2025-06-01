@@ -1,0 +1,55 @@
+{% extends 'base.html' %}
+
+{% block title %}Aniversariantes do Mês{% endblock %}
+
+{% block content %}
+<h2 class="mb-4">Relatório: Aniversariantes de {{ agora.strftime('%B') }}</h2>
+<hr>
+{% if aniversariantes %}
+  <table class="table table-hover">
+    <thead>
+      <tr>
+        <th>Nome</th>
+        <th>Data de Nascimento</th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for aluno in aniversariantes %}
+        <tr>
+          <td>{{ aluno.nome }}</td>
+          <td>
+            {% if aluno.nascimento %}
+              {{ aluno.nascimento[8:10] }}/{{ aluno.nascimento[5:7] }}/{{ aluno.nascimento[0:4] }}
+            {% else %}
+              -
+            {% endif %}
+          </td>
+        </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+{% else %}
+  <p>Nenhum aniversariante neste mês.</p>
+{% endif %}
+
+<a href="{{ url_for('relatorios') }}" class="btn btn-secondary mt-3">Voltar</a>
+<footer style="
+    background-color: #f8f9fa;
+    padding: 1.5rem 1rem;
+    text-align: center;
+    font-family: 'Georgia', serif;
+    color: #444;
+    border-top: 1px solid #ddd;
+    margin-top: 3rem;
+    ">
+  <p style="font-size: 1rem; font-style: italic; max-width: 600px; margin: 0 auto 0.5rem;">
+    “Dai graças em todas as circunstâncias, pois esta é a vontade de Deus para vocês em Cristo Jesus.”
+  </p>
+  <p style="font-weight: bold; font-size: 0.9rem; color: #2c3e50; margin-bottom: 1rem;">
+    — 1 Tessalonicenses 5:18
+  </p>
+  <p style="font-size: 0.85rem; color: #999; letter-spacing: 1px; margin-top: 1rem;">
+    <span style="font-weight: 700; color: #1a1a1a;">Registrado:</span> Ranyere Lima
+  </p>
+</footer>
+{% endblock %}
