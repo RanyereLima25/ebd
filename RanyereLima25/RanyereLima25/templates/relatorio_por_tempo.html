@@ -1,0 +1,63 @@
+{% extends 'base.html' %}
+
+{% block title %}Relatório - Alunos por Tempo de Ingresso{% endblock %}
+
+{% block content %}
+<h2 class="mb-4">Relatório: Alunos por Tempo de Ingresso</h2>
+
+<!-- 🔍 Filtro por tempo de ingresso -->
+<form method="get" class="form-classe">
+    <label for="tempo"><strong>Selecione o Tempo:</strong></label>
+    <select name="tempo" id="tempo" onchange="this.form.submit()">
+        <option value="">Todos</option>
+        <option value="3" {% if request.args.get('tempo') == '3' %}selected{% endif %}>3 anos</option>
+        <option value="6" {% if request.args.get('tempo') == '6' %}selected{% endif %}>6 anos</option>
+        <option value="9" {% if request.args.get('tempo') == '9' %}selected{% endif %}>9 anos</option>
+    </select>
+</form>
+<hr>
+<!-- 🔥 Tabela -->
+<table class="styled-table">
+    <thead>
+        <tr>
+            <th style="width: 30%;">Classe</th>
+            <th style="width: 50%;">Nome</th>
+            <th style="width: 20%;">Ano de Ingresso</th>
+        </tr>
+    </thead>
+    <tbody>
+        {% for aluno in alunos_filtrados %}
+        <tr>
+            <td>{{ aluno.classe }}</td>
+            <td>{{ aluno.nome }}</td>
+            <td>{{ aluno.ano_ingresso }}</td>
+        </tr>
+        {% endfor %}
+    </tbody>
+</table>
+<!--Botões -->
+<div class="button-group">
+    <a href="#" onclick="window.print()" class="btn-action">Gerar PDF</a>
+</div>
+<a href="{{ url_for('relatorios') }}" class="btn btn-secondary mt-3">Voltar</a>
+<footer style="
+    background-color: #f8f9fa;
+    padding: 1.5rem 1rem;
+    text-align: center;
+    font-family: 'Georgia', serif;
+    color: #444;
+    border-top: 1px solid #ddd;
+    margin-top: 3rem;
+    ">
+  <p style="font-size: 1rem; font-style: italic; max-width: 600px; margin: 0 auto 0.5rem;">
+    “Dai graças em todas as circunstâncias, pois esta é a vontade de Deus para vocês em Cristo Jesus.”
+  </p>
+  <p style="font-weight: bold; font-size: 0.9rem; color: #2c3e50; margin-bottom: 1rem;">
+    — 1 Tessalonicenses 5:18
+  </p>
+  <p style="font-size: 0.85rem; color: #999; letter-spacing: 1px; margin-top: 1rem;">
+    <span style="font-weight: 700; color: #1a1a1a;">Registrado:</span> Ranyere Lima
+  </p>
+</footer>
+
+{% endblock %}
