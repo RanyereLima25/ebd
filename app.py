@@ -230,32 +230,35 @@ def graficos():
     usuario_logado = Usuario.query.get(session['usuario_id']).login
     return render_template('graficos.html', labels=labels, valores=valores, usuario=usuario_logado)
 
+
 @app.route('/editar/<int:pessoa_id>', methods=['GET', 'POST'])
 @login_required
 def editar(pessoa_id):
     pessoa = Pessoa.query.get_or_404(pessoa_id)
     if request.method == 'POST':
-        pessoa.nome = request.form['nome']
-        pessoa.cpf = request.form['cpf']
-        pessoa.nascimento = request.form['nascimento']
-        pessoa.email = request.form['email']
-        pessoa.telefone = request.form['telefone']
-        pessoa.tipo = request.form['tipo'] 
-        pessoa.matricula = request.form['matricula']
-        pessoa.classe = request.form['classe']
-        pessoa.sala = request.form['sala']
-        pessoa.ano_ingresso = request.form['ano_ingresso']
-        pessoa.cep = request.form['cep']
-        pessoa.rua = request.form['rua']
-        pessoa.numero = request.form['numero']
-        pessoa.complemento = request.form['complemento']
-        pessoa.bairro = request.form['bairro']
-        pessoa.cidade = request.form['cidade']
-        pessoa.estado = request.form['estado']
+        pessoa.nome = request.form.get('nome', pessoa.nome)
+        pessoa.cpf = request.form.get('cpf', pessoa.cpf)
+        pessoa.nascimento = request.form.get('nascimento', pessoa.nascimento)
+        pessoa.email = request.form.get('email', pessoa.email)
+        pessoa.telefone = request.form.get('telefone', pessoa.telefone)
+        pessoa.tipo = request.form.get('tipo', pessoa.tipo)
+        pessoa.matricula = request.form.get('matricula', pessoa.matricula)
+        pessoa.classe = request.form.get('classe', pessoa.classe)
+        pessoa.sala = request.form.get('sala', pessoa.sala)
+        pessoa.ano_ingresso = request.form.get('ano_ingresso', pessoa.ano_ingresso)
+        pessoa.cep = request.form.get('cep', pessoa.cep)
+        pessoa.rua = request.form.get('rua', pessoa.rua)
+        pessoa.numero = request.form.get('numero', pessoa.numero)
+        pessoa.complemento = request.form.get('complemento', pessoa.complemento)
+        pessoa.bairro = request.form.get('bairro', pessoa.bairro)
+        pessoa.cidade = request.form.get('cidade', pessoa.cidade)
+        pessoa.estado = request.form.get('estado', pessoa.estado)
+
         db.session.commit()
         flash('Cadastro atualizado com sucesso.')
         return redirect(url_for('visualizar'))
     return render_template('editar.html', pessoa=pessoa)
+
 
 @app.route('/excluir/<int:pessoa_id>')
 @login_required
