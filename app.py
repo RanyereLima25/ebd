@@ -7,20 +7,23 @@ from datetime import datetime
 
 app = Flask(__name__)
 app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///cadastro.db'
+app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 app.config['SECRET_KEY'] = 'ebd'
 
 db = SQLAlchemy(app)
 
+# =============================
 # MODELOS
+# =============================
 
 class Pessoa(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     nome = db.Column(db.String(100), nullable=False)
     cpf = db.Column(db.String(20), nullable=False, unique=True)
-    nascimento = db.Column(db.String(50))
+    nascimento = db.Column(db.String(10))  # Formato: 'YYYY-MM-DD'
     email = db.Column(db.String(100), nullable=False)
     telefone = db.Column(db.String(20), nullable=False)
-    tipo = db.Column(db.String(20)) 
+    tipo = db.Column(db.String(20))
     matricula = db.Column(db.String(20))
     classe = db.Column(db.String(100), nullable=False)
     sala = db.Column(db.String(20))
@@ -44,7 +47,10 @@ class Usuario(db.Model):
     def checar_senha(self, senha):
         return check_password_hash(self.senha_hash, senha)
 
-# DECORADOR PARA LOGIN
+
+# =============================
+# DECORADORES E FILTROS
+# =============================
 
 def login_required(f):
     @wraps(f)
@@ -55,25 +61,25 @@ def login_required(f):
         return f(*args, **kwargs)
     return decorated_function
 
-# FILTRO DE TEMPLATE PARA FORMATAR DATA
-
 @app.template_filter('formatadata')
 def formatadata(value):
-    if value is None:
+    if not value:
         return "-"
-    if isinstance(value, datetime):
-        return value.strftime('%d/%m/%Y')
     try:
         return datetime.strptime(value, '%Y-%m-%d').strftime('%d/%m/%Y')
     except Exception:
         return value
 
+
+# =============================
 # ROTAS
+# =============================
 
 @app.route('/')
 def index():
     return redirect(url_for('login'))
 
+# ---------- LOGIN ----------
 @app.route('/login', methods=['GET', 'POST'])
 def login():
     if request.method == 'POST':
@@ -82,16 +88,19 @@ def login():
         usuario = Usuario.query.filter_by(login=login_form).first()
         if usuario and usuario.checar_senha(senha_form):
             session['usuario_id'] = usuario.id
+            flash('Login realizado com sucesso.')
             return redirect(url_for('visualizar'))
         else:
-            flash('Login ou senha inválidos')
+            flash('Login ou senha inválidos.')
     return render_template('login.html')
 
 @app.route('/logout')
 def logout():
     session.pop('usuario_id', None)
+    flash('Você saiu do sistema.')
     return redirect(url_for('login'))
 
+# ---------- REGISTRO ----------
 @app.route('/registrar', methods=['GET', 'POST'])
 def registrar():
     if request.method == 'POST':
@@ -99,75 +108,69 @@ def registrar():
         senha_form = request.form['senha']
         if Usuario.query.filter_by(login=login_form).first():
             flash('Usuário já existe.')
-            return redirect(url_for('registrar'))
-        novo_usuario = Usuario(login=login_form)
-        novo_usuario.set_senha(senha_form)
-        db.session.add(novo_usuario)
-        db.session.commit()
-        flash('Usuário registrado com sucesso.')
-        return redirect(url_for('login'))
+        else:
+            novo_usuario = Usuario(login=login_form)
+            novo_usuario.set_senha(senha_form)
+            db.session.add(novo_usuario)
+            db.session.commit()
+            flash('Usuário registrado com sucesso.')
+            return redirect(url_for('login'))
     return render_template('registrar.html')
 
+# ---------- CADASTRO ----------
 @app.route('/cadastro', methods=['GET', 'POST'])
 @login_required
 def cadastro():
     if request.method == 'POST':
-        nascimento_str = request.form.get('nascimento')
-        try:
-            if nascimento_str:
-                nascimento = datetime.strptime(nascimento_str, '%Y-%m-%d')
-            else:
-                nascimento = None
-        except ValueError:
-            nascimento = nascimento_str
-        
-        tipo = request.form.get('tipo')  # Pegando o tipo aqui
+        dados = request.form.to_dict()
+        nascimento = dados.get('nascimento') or None
 
         nova_pessoa = Pessoa(
-            nome=request.form['nome'],
-            cpf=request.form['cpf'],
+            nome=dados.get('nome'),
+            cpf=dados.get('cpf'),
             nascimento=nascimento,
-            email=request.form['email'],
-            telefone=request.form['telefone'],
-            tipo=tipo,  # usando a variável obtida
-            matricula=request.form['matricula'],
-            classe=request.form['classe'],
-            sala=request.form['sala'],
-            ano_ingresso=request.form['ano_ingresso'],
-            cep=request.form['cep'],
-            rua=request.form['rua'],
-            numero=request.form['numero'],
-            complemento=request.form['complemento'],
-            bairro=request.form['bairro'],
-            cidade=request.form['cidade'],
-            estado=request.form['estado']
+            email=dados.get('email'),
+            telefone=dados.get('telefone'),
+            tipo=dados.get('tipo'),
+            matricula=dados.get('matricula'),
+            classe=dados.get('classe'),
+            sala=dados.get('sala'),
+            ano_ingresso=dados.get('ano_ingresso'),
+            cep=dados.get('cep'),
+            rua=dados.get('rua'),
+            numero=dados.get('numero'),
+            complemento=dados.get('complemento'),
+            bairro=dados.get('bairro'),
+            cidade=dados.get('cidade'),
+            estado=dados.get('estado')
         )
         db.session.add(nova_pessoa)
         db.session.commit()
-
         flash('Cadastro realizado com sucesso.')
         return redirect(url_for('visualizar'))
 
     usuario_logado = Usuario.query.get(session['usuario_id']).login
     return render_template('cadastro.html', usuario=usuario_logado)
 
+# ---------- VISUALIZAR ----------
 @app.route('/visualizar')
 @login_required
 def visualizar():
-    busca = request.args.get('busca', '')
-    ordem = request.args.get('ordem', '') 
-    pessoas = Pessoa.query
+    busca = request.args.get('busca', '').strip()
+    ordem = request.args.get('ordem', '')
 
+    query = Pessoa.query
     if busca:
-        pessoas = pessoas.filter(Pessoa.nome.ilike(f'%{busca}%'))
+        query = query.filter(Pessoa.nome.ilike(f'%{busca}%'))
     if ordem == 'classe':
-        pessoas = pessoas.order_by(Pessoa.classe)
+        query = query.order_by(Pessoa.classe)
 
-    pessoas = pessoas.all()
-
+    pessoas = query.all()
     usuario_logado = Usuario.query.get(session['usuario_id']).login
+
     return render_template('visualizar.html', pessoas=pessoas, total=len(pessoas), usuario=usuario_logado)
 
+# ---------- RELATÓRIOS ----------
 @app.route('/relatorios')
 @login_required
 def relatorios():
@@ -191,7 +194,7 @@ def relatorio_todos_alunos():
 
 @app.route('/relatorio-aniversariantes')
 @login_required
-def relatorio_aniversariantes_mes():
+def relatorio_aniversariantes():
     hoje = datetime.now()
     aniversariantes = Pessoa.query.filter(
         db.extract('month', Pessoa.nascimento) == hoje.month
@@ -205,10 +208,9 @@ def relatorio_por_tempo():
     ano_atual = datetime.now().year
 
     alunos = Pessoa.query.order_by(Pessoa.classe, Pessoa.nome).all()
-
     alunos_filtrados = []
 
-    if tempo:
+    if tempo and tempo.isdigit():
         tempo = int(tempo)
         for aluno in alunos:
             if aluno.ano_ingresso and aluno.ano_ingresso.isdigit():
@@ -220,8 +222,9 @@ def relatorio_por_tempo():
 
     return render_template('relatorio_por_tempo.html', alunos_filtrados=alunos_filtrados)
 
+# ---------- GRÁFICOS ----------
 @app.route('/graficos')
-@login_required 
+@login_required
 def graficos():
     dados = db.session.query(Pessoa.classe, db.func.count(Pessoa.id)).group_by(Pessoa.classe).all()
     labels = [d[0] for d in dados]
@@ -230,36 +233,21 @@ def graficos():
     usuario_logado = Usuario.query.get(session['usuario_id']).login
     return render_template('graficos.html', labels=labels, valores=valores, usuario=usuario_logado)
 
-
+# ---------- EDITAR ----------
 @app.route('/editar/<int:pessoa_id>', methods=['GET', 'POST'])
 @login_required
 def editar(pessoa_id):
     pessoa = Pessoa.query.get_or_404(pessoa_id)
     if request.method == 'POST':
-        pessoa.nome = request.form.get('nome', pessoa.nome)
-        pessoa.cpf = request.form.get('cpf', pessoa.cpf)
-        pessoa.nascimento = request.form.get('nascimento', pessoa.nascimento)
-        pessoa.email = request.form.get('email', pessoa.email)
-        pessoa.telefone = request.form.get('telefone', pessoa.telefone)
-        pessoa.tipo = request.form.get('tipo', pessoa.tipo)
-        pessoa.matricula = request.form.get('matricula', pessoa.matricula)
-        pessoa.classe = request.form.get('classe', pessoa.classe)
-        pessoa.sala = request.form.get('sala', pessoa.sala)
-        pessoa.ano_ingresso = request.form.get('ano_ingresso', pessoa.ano_ingresso)
-        pessoa.cep = request.form.get('cep', pessoa.cep)
-        pessoa.rua = request.form.get('rua', pessoa.rua)
-        pessoa.numero = request.form.get('numero', pessoa.numero)
-        pessoa.complemento = request.form.get('complemento', pessoa.complemento)
-        pessoa.bairro = request.form.get('bairro', pessoa.bairro)
-        pessoa.cidade = request.form.get('cidade', pessoa.cidade)
-        pessoa.estado = request.form.get('estado', pessoa.estado)
-
+        for campo in request.form:
+            if hasattr(pessoa, campo):
+                setattr(pessoa, campo, request.form[campo])
         db.session.commit()
         flash('Cadastro atualizado com sucesso.')
         return redirect(url_for('visualizar'))
     return render_template('editar.html', pessoa=pessoa)
 
-
+# ---------- EXCLUIR ----------
 @app.route('/excluir/<int:pessoa_id>')
 @login_required
 def excluir(pessoa_id):
@@ -269,6 +257,10 @@ def excluir(pessoa_id):
     flash('Cadastro excluído com sucesso.')
     return redirect(url_for('visualizar'))
 
+
+# =============================
+# EXECUÇÃO
+# =============================
 if __name__ == '__main__':
     with app.app_context():
         db.create_all()
