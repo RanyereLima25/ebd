@@ -1,1 +1,41 @@
+{% extends 'base.html' %}
+
+{% block title %}Editar Cadastro{% endblock %}
+
+{% block content %}
+<h2 class="mb-4">Editar Cadastro</h2>
+
+<form method="POST" action="{{ url_for('editar', pessoa_id=pessoa.id) }}">
+    <div class="mb-3">
+        <label class="form-label">Nome</label>
+        <input type="text" class="form-control" name="nome" value="{{ pessoa.nome }}" required>
+    </div>
+    <div class="mb-3">
+        <label class="form-label">CPF</label>
+        <input type="text" class="form-control" name="cpf" value="{{ pessoa.cpf }}" required>
+    </div>
+    <div class="mb-3">
+        <label class="form-label">Classe (Curso)</label>
+        <input type="text" class="form-control" name="classe" value="{{ pessoa.classe }}" required>
+    </div>
+    <div class="mb-3">
+        <label class="form-label">Email</label>
+        <input type="email" class="form-control" name="email" value="{{ pessoa.email }}" required>
+    </div>
+    <div class="mb-3">
+        <label class="form-label">Telefone</label>
+        <input type="text" class="form-control" name="telefone" value="{{ pessoa.telefone }}" required>
+    </div>
+    <div class="mb-3">
+        <label class="form-label">Tipo</label>
+        <select class="form-select" name="tipo" required>
+            <option value="Aluno" {% if pessoa.tipo == 'Aluno' %}selected{% endif %}>Aluno</option>
+            <option value="Professor" {% if pessoa.tipo == 'Professor' %}selected{% endif %}>Professor</option>
+        </select>
+    </div>
+
+    <button type="submit" class="btn btn-success">Salvar Alterações</button>
+    <a href="{{ url_for('visualizar') }}" class="btn btn-secondary">Cancelar</a>
+</form>
+{% endblock %}
 <!-- Template editar.html -->
