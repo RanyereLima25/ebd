@@ -6,12 +6,9 @@
 
 <!-- 🏛️ Cabeçalho personalizado com logo e slogan -->
 <div class="cabecalho-igreja" style="display: flex; justify-content: space-between; align-items: center;">
-    <!-- 📷 Logo da igreja -->
     <div style="flex: 0 0 auto;">
         <img src="{{ url_for('static', filename='img/logo.png') }}" alt="Logo da Igreja" style="height: 80px;">
     </div>
-
-    <!-- 🏛️ Nome da igreja e slogan -->
     <div style="flex: 1; text-align: right;">
         <h2 style="margin: 0;">Igreja Evangélica Assembleia de Deus no Amazonas</h2>
         <h3 style="margin: 0;">Templo Central</h3>
@@ -55,7 +52,7 @@
                     <td>{{ aluno.nome }}</td>
                     <td>
                         {% if aluno.nascimento %}
-                            {{ aluno.nascimento[8:10] }}/{{ aluno.nascimento[5:7] }}/{{ aluno.nascimento[0:4] }}
+                            {{ aluno.nascimento.strftime('%d/%m/%Y') }}
                         {% else %}
                             -
                         {% endif %}
