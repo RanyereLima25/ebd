@@ -8,15 +8,17 @@ import os
 
 app = Flask(__name__)
 
-# Configurações
-#app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///cadastro.db'
-app.config['SQLALCHEMY_DATABASE_URI'] = 'postgresql://ebd_db_k5jg_user:gr5VUsZ4cS03LAp6jSuYUBDXMWZyxoUh@dpg-d0u8c1c9c44c73aghr0g-a.oregon-postgres.render.com/ebd_db_k5jg'
+# 🔧 Configurações
+app.config['SQLALCHEMY_DATABASE_URI'] = os.getenv(
+    'DATABASE_URL',
+    'postgresql://ebd_db_k5jg_user:gr5VUsZ4cS03LAp6jSuYUBDXMWZyxoUh@dpg-d0u8c1c9c44c73aghr0g-a.oregon-postgres.render.com/ebd_db_k5jg'
+)
 app.config['SECRET_KEY'] = os.getenv('SECRET_KEY', 'ebd')
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 
 db = SQLAlchemy(app)
 
-# MODELOS
+# 📦 MODELOS
 class Pessoa(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     nome = db.Column(db.String(100), nullable=False)
@@ -50,7 +52,7 @@ class Usuario(db.Model):
         return check_password_hash(self.senha_hash, senha)
 
 
-# DECORADOR LOGIN
+# 🔒 DECORADOR LOGIN
 def login_required(f):
     @wraps(f)
     def decorated_function(*args, **kwargs):
@@ -61,20 +63,20 @@ def login_required(f):
     return decorated_function
 
 
-# FILTRO DE DATA
+# 📅 FILTRO DE DATA
 @app.template_filter('formatadata')
 def formatadata(value):
     if value is None:
         return "-"
-    if isinstance(value, datetime):
-        return value.strftime('%d/%m/%Y')
     try:
-        return datetime.strptime(value, '%Y-%m-%d').strftime('%d/%m/%Y')
+        if isinstance(value, datetime):
+            return value.strftime('%d/%m/%Y')
+        return datetime.strptime(str(value), '%Y-%m-%d').strftime('%d/%m/%Y')
     except Exception:
         return value
 
 
-# ROTAS
+# 🚪 ROTAS DE LOGIN
 @app.route('/')
 def index():
     return redirect(url_for('login'))
@@ -117,15 +119,13 @@ def registrar():
     return render_template('registrar.html')
 
 
+# 👥 ROTAS DE PESSOA
 @app.route('/cadastro', methods=['GET', 'POST'])
 @login_required
 def cadastro():
     if request.method == 'POST':
-        nascimento_str = request.form.get('nascimento')
-        try:
-            nascimento = datetime.strptime(nascimento_str, '%Y-%m-%d') if nascimento_str else None
-        except ValueError:
-            nascimento = nascimento_str
+        nascimento = request.form.get('nascimento')
+        nascimento = nascimento if nascimento else None
 
         nova_pessoa = Pessoa(
             nome=request.form['nome'],
@@ -170,11 +170,36 @@ def visualizar():
         pessoas = pessoas.order_by(Pessoa.classe)
 
     pessoas = pessoas.all()
-
     usuario_logado = Usuario.query.get(session['usuario_id']).login
     return render_template('visualizar.html', pessoas=pessoas, total=len(pessoas), usuario=usuario_logado)
 
 
+@app.route('/editar/<int:pessoa_id>', methods=['GET', 'POST'])
+@login_required
+def editar(pessoa_id):
+    pessoa = Pessoa.query.get_or_404(pessoa_id)
+    if request.method == 'POST':
+        for campo in request.form:
+            if hasattr(pessoa, campo):
+                setattr(pessoa, campo, request.form[campo])
+
+        db.session.commit()
+        flash('Cadastro atualizado com sucesso.')
+        return redirect(url_for('visualizar'))
+    return render_template('editar.html', pessoa=pessoa)
+
+
+@app.route('/excluir/<int:pessoa_id>')
+@login_required
+def excluir(pessoa_id):
+    pessoa = Pessoa.query.get_or_404(pessoa_id)
+    db.session.delete(pessoa)
+    db.session.commit()
+    flash('Cadastro excluído com sucesso.')
+    return redirect(url_for('visualizar'))
+
+
+# 📊 RELATÓRIOS
 @app.route('/relatorios')
 @login_required
 def relatorios():
@@ -216,10 +241,9 @@ def relatorio_por_tempo():
     ano_atual = datetime.now().year
 
     alunos = Pessoa.query.order_by(Pessoa.classe, Pessoa.nome).all()
-
     alunos_filtrados = []
 
-    if tempo:
+    if tempo and tempo.isdigit():
         tempo = int(tempo)
         for aluno in alunos:
             if aluno.ano_ingresso and aluno.ano_ingresso.isdigit():
@@ -243,45 +267,6 @@ def graficos():
     return render_template('graficos.html', labels=labels, valores=valores, usuario=usuario_logado)
 
 
-@app.route('/editar/<int:pessoa_id>', methods=['GET', 'POST'])
-@login_required
-def editar(pessoa_id):
-    pessoa = Pessoa.query.get_or_404(pessoa_id)
-    if request.method == 'POST':
-        pessoa.nome = request.form.get('nome', pessoa.nome)
-        pessoa.cpf = request.form.get('cpf', pessoa.cpf)
-        pessoa.nascimento = request.form.get('nascimento', pessoa.nascimento)
-        pessoa.email = request.form.get('email', pessoa.email)
-        pessoa.telefone = request.form.get('telefone', pessoa.telefone)
-        pessoa.tipo = request.form.get('tipo', pessoa.tipo)
-        pessoa.matricula = request.form.get('matricula', pessoa.matricula)
-        pessoa.classe = request.form.get('classe', pessoa.classe)
-        pessoa.sala = request.form.get('sala', pessoa.sala)
-        pessoa.ano_ingresso = request.form.get('ano_ingresso', pessoa.ano_ingresso)
-        pessoa.cep = request.form.get('cep', pessoa.cep)
-        pessoa.rua = request.form.get('rua', pessoa.rua)
-        pessoa.numero = request.form.get('numero', pessoa.numero)
-        pessoa.complemento = request.form.get('complemento', pessoa.complemento)
-        pessoa.bairro = request.form.get('bairro', pessoa.bairro)
-        pessoa.cidade = request.form.get('cidade', pessoa.cidade)
-        pessoa.estado = request.form.get('estado', pessoa.estado)
-
-        db.session.commit()
-        flash('Cadastro atualizado com sucesso.')
-        return redirect(url_for('visualizar'))
-    return render_template('editar.html', pessoa=pessoa)
-
-
-@app.route('/excluir/<int:pessoa_id>')
-@login_required
-def excluir(pessoa_id):
-    pessoa = Pessoa.query.get_or_404(pessoa_id)
-    db.session.delete(pessoa)
-    db.session.commit()
-    flash('Cadastro excluído com sucesso.')
-    return redirect(url_for('visualizar'))
-
-
-# CRIA O BANCO DE DADOS SE NÃO EXISTIR
+# 🏗️ CRIA O BANCO SE NÃO EXISTIR
 with app.app_context():
     db.create_all()
