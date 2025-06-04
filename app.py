@@ -63,15 +63,23 @@ def login_required(f):
     return decorated_function
 
 
-# 📅 FILTRO DE DATA
+# 📅 FILTRO JINJA PARA FORMATAR DATAS
 @app.template_filter('formatadata')
 def formatadata(value):
-    if value is None:
+    if not value:
         return "-"
     try:
         if isinstance(value, datetime):
             return value.strftime('%d/%m/%Y')
-        return datetime.strptime(str(value), '%Y-%m-%d').strftime('%d/%m/%Y')
+        elif isinstance(value, str):
+            try:
+                return datetime.strptime(value, '%Y-%m-%d').strftime('%d/%m/%Y')
+            except ValueError:
+                try:
+                    return datetime.strptime(value, '%d/%m/%Y').strftime('%d/%m/%Y')
+                except ValueError:
+                    return value
+        return str(value)
     except Exception:
         return value
 
