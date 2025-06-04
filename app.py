@@ -8,6 +8,13 @@ import os
 
 app = Flask(__name__)
 
+def format_date(value, format="%d/%m/%Y"):
+    if isinstance(value, datetime):
+        return value.strftime(format)
+    return value  # caso não seja datetime, retorna sem alteração
+
+app.jinja_env.filters['format_date'] = format_date
+
 # 🔧 Configurações
 app.config['SQLALCHEMY_DATABASE_URI'] = os.getenv(
     'DATABASE_URL',
