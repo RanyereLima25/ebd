@@ -50,7 +50,13 @@
                 <tr>
                     <td>{{ classe }}</td>
                     <td>{{ aluno.nome }}</td>
-                    <td>{{ aluno.nascimento|format_date }}</td>
+                    <td>
+                        {% if aluno.nascimento %}
+                            {{ aluno.nascimento.strftime('%d/%m/%Y') }}
+                        {% else %}
+                            -
+                        {% endif %}
+                    </td>
                 </tr>
                 {% endfor %}
             {% endif %}
