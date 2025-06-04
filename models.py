@@ -5,15 +5,15 @@ from datetime import date
 db = SQLAlchemy()
 
 class Pessoa(db.Model):
-    class Pessoa(db.Model):
+    __tablename__ = 'pessoa'
+    
     id = db.Column(db.Integer, primary_key=True)
     nome = db.Column(db.String(100), nullable=False)
     cpf = db.Column(db.String(14), nullable=False, unique=True)
-    #nascimento = db.Column(db.String(10), nullable=False)
     nascimento = db.Column(db.Date)
     email = db.Column(db.String(100))
     telefone = db.Column(db.String(20))
-    tipo = db.Column(db.String(20), nullable=False)
+    tipo = db.Column(db.String(20), nullable=False)  # Ex.: aluno, professor, etc.
     matricula = db.Column(db.String(20))
     classe = db.Column(db.String(100))
     sala = db.Column(db.String(20))
@@ -25,9 +25,13 @@ class Pessoa(db.Model):
     bairro = db.Column(db.String(100)) 
     cidade = db.Column(db.String(100))
     estado = db.Column(db.String(50)) 
-    classe = db.Column(db.String(50))
+
+    def __repr__(self):
+        return f'<Pessoa {self.nome}>'
 
 class Usuario(db.Model):
+    __tablename__ = 'usuario'
+    
     id = db.Column(db.Integer, primary_key=True)
     login = db.Column(db.String(150), unique=True, nullable=False)
     senha_hash = db.Column(db.String(256), nullable=False)
@@ -37,3 +41,6 @@ class Usuario(db.Model):
 
     def checar_senha(self, senha):
         return check_password_hash(self.senha_hash, senha)
+
+    def __repr__(self):
+        return f'<Usuario {self.login}>'
