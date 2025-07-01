@@ -22,16 +22,11 @@
   </select>
 </form>
 
-{% set pessoas_filtradas = alunos %}
-{% if filtro_tipo %}
-  {% set pessoas_filtradas = alunos | selectattr("tipo", "equalto", filtro_tipo) | list %}
-{% endif %}
-
 <p><strong>Total de 
   {% if filtro_tipo == 'aluno' %}alunos
   {% elif filtro_tipo == 'professor' %}professores
   {% else %}pessoas
-  {% endif %}:</strong> {{ pessoas_filtradas|length }}
+  {% endif %}:</strong> {{ pessoas|length }}
 </p>
 <hr>
 
@@ -44,7 +39,7 @@
     </tr>
   </thead>
   <tbody>
-    {% for pessoa in pessoas_filtradas %}
+    {% for pessoa in pessoas %}
     <tr>
       <td>{{ pessoa.nome }}</td>
       <td>
@@ -54,9 +49,7 @@
           -
         {% endif %}
       </td>
-      <td>
-        {{ pessoa.tipo|capitalize }}
-      </td>
+      <td>{{ pessoa.tipo|capitalize }}</td>
     </tr>
     {% endfor %}
   </tbody>
