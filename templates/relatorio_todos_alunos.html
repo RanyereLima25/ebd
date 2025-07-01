@@ -9,12 +9,12 @@
   {% elif filtro_tipo == 'aluno' %}
     Alunos
   {% else %}
-    Todos
+    Alunos e Professores
   {% endif %}
 </h2>
 
 <form method="get" class="mb-3">
-  <label for="tipo">Filtrar por TESTE:</label>
+  <label for="tipo">Filtrar por:</label>
   <select name="tipo" id="tipo" onchange="this.form.submit()" class="form-select w-auto d-inline mx-2">
     <option value="" {% if not filtro_tipo %}selected{% endif %}>Todos</option>
     <option value="aluno" {% if filtro_tipo == 'aluno' %}selected{% endif %}>Alunos</option>
@@ -22,9 +22,17 @@
   </select>
 </form>
 
-{% set pessoas_filtradas = alunos if not filtro_tipo else alunos | selectattr("tipo", "equalto", filtro_tipo) | list %}
+{% set pessoas_filtradas = alunos %}
+{% if filtro_tipo %}
+  {% set pessoas_filtradas = alunos | selectattr("tipo", "equalto", filtro_tipo) | list %}
+{% endif %}
 
-<p><strong>Total de {{ filtro_tipo if filtro_tipo else 'pessoas' }}:</strong> {{ pessoas_filtradas|length }}</p>
+<p><strong>Total de 
+  {% if filtro_tipo == 'aluno' %}alunos
+  {% elif filtro_tipo == 'professor' %}professores
+  {% else %}pessoas
+  {% endif %}:</strong> {{ pessoas_filtradas|length }}
+</p>
 <hr>
 
 <table class="table table-striped">
@@ -35,12 +43,12 @@
     </tr>
   </thead>
   <tbody>
-    {% for aluno in pessoas_filtradas %}
+    {% for pessoa in pessoas_filtradas %}
     <tr>
-      <td>{{ aluno.nome }}</td>
+      <td>{{ pessoa.nome }}</td>
       <td>
-        {% if aluno.nascimento %}
-          {{ aluno.nascimento[8:10] }}/{{ aluno.nascimento[5:7] }}/{{ aluno.nascimento[0:4] }}
+        {% if pessoa.nascimento %}
+          {{ pessoa.nascimento[8:10] }}/{{ pessoa.nascimento[5:7] }}/{{ pessoa.nascimento[0:4] }}
         {% else %}
           -
         {% endif %}
