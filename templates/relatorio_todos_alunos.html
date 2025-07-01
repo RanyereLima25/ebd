@@ -40,6 +40,7 @@
     <tr>
       <th>Nome</th>
       <th>Data de Nascimento</th>
+      <th>Tipo</th>
     </tr>
   </thead>
   <tbody>
@@ -52,6 +53,9 @@
         {% else %}
           -
         {% endif %}
+      </td>
+      <td>
+        {{ pessoa.tipo|capitalize }}
       </td>
     </tr>
     {% endfor %}
