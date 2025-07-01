@@ -1,11 +1,32 @@
 {% extends 'base.html' %}
 
-{% block title %}Todos os Alunos{% endblock %}
+{% block title %}Relatório{% endblock %}
 
 {% block content %}
-<h2 class="mb-4">Relatório: Todos os Alunos</h2>
-<p><strong>Total de alunos:</strong> {{ alunos|length }}</p> <!-- Contador adicionado -->
+<h2 class="mb-4">Relatório: 
+  {% if filtro_tipo == 'professor' %}
+    Professores
+  {% elif filtro_tipo == 'aluno' %}
+    Alunos
+  {% else %}
+    Todos
+  {% endif %}
+</h2>
+
+<form method="get" class="mb-3">
+  <label for="tipo">Filtrar por:</label>
+  <select name="tipo" id="tipo" onchange="this.form.submit()" class="form-select w-auto d-inline mx-2">
+    <option value="" {% if not filtro_tipo %}selected{% endif %}>Todos</option>
+    <option value="aluno" {% if filtro_tipo == 'aluno' %}selected{% endif %}>Alunos</option>
+    <option value="professor" {% if filtro_tipo == 'professor' %}selected{% endif %}>Professores</option>
+  </select>
+</form>
+
+{% set pessoas_filtradas = alunos if not filtro_tipo else alunos | selectattr("tipo", "equalto", filtro_tipo) | list %}
+
+<p><strong>Total de {{ filtro_tipo if filtro_tipo else 'pessoas' }}:</strong> {{ pessoas_filtradas|length }}</p>
 <hr>
+
 <table class="table table-striped">
   <thead>
     <tr>
@@ -14,7 +35,7 @@
     </tr>
   </thead>
   <tbody>
-    {% for aluno in alunos %}
+    {% for aluno in pessoas_filtradas %}
     <tr>
       <td>{{ aluno.nome }}</td>
       <td>
@@ -30,6 +51,7 @@
 </table>
 
 <a href="{{ url_for('relatorios') }}" class="btn btn-secondary mt-3">Voltar</a>
+
 <footer style="
     background-color: #f8f9fa;
     padding: 1.5rem 1rem;
@@ -49,5 +71,4 @@
     <span style="font-weight: 700; color: #1a1a1a;">Registrado:</span> Ranyere Lima
   </p>
 </footer>
-
 {% endblock %}
