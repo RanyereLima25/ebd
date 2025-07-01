@@ -203,7 +203,7 @@ def relatorio_por_classe():
 @login_required
 def relatorio_todos_alunos():
     tipo = request.args.get('tipo')
-    if tipo in ['aluno', 'professor']:
+    if tipo in ['Aluno', 'Professor']:
         pessoas = Pessoa.query.filter_by(tipo=tipo).order_by(Pessoa.nome).all()
     else:
         pessoas = Pessoa.query.order_by(Pessoa.nome).all()
