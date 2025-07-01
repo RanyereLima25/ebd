@@ -193,19 +193,11 @@ def relatorio_por_classe():
         dados_por_classe[aluno.classe].append(aluno)
     return render_template('relatorio_por_classe.html', dados_por_classe=dados_por_classe)
 
-#@app.route('/relatorio-todos-alunos')
-#@login_required
-#def relatorio_todos_alunos():
- #   alunos = Pessoa.query.order_by(Pessoa.nome).all()
-  #  return render_template('relatorio_todos_alunos.html', alunos=alunos)
-
-
 @app.route('/relatorio-todos-alunos')
 @login_required
 def relatorio_todos_alunos():
-    tipo = request.args.get('tipo', 'aluno')  # valor padrão: 'aluno'
-    alunos = Pessoa.query.order_by(Pessoa.nome).all()
-    return render_template('relatorio_todos_alunos.html', alunos=alunos, filtro_tipo=tipo)
+   alunos = Pessoa.query.order_by(Pessoa.nome).all()
+   return render_template('relatorio_todos_alunos.html', alunos=alunos)
 
 
 @app.route('/relatorio-aniversariantes')
