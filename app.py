@@ -202,7 +202,7 @@ def relatorio_por_classe():
 @app.route('/relatorio-todos-alunos')
 @login_required
 def relatorio_todos_alunos():
-    tipo = request.args.get('tipo')  # pode ser 'aluno', 'professor' ou None
+    tipo = request.args.get('tipo')
     if tipo in ['aluno', 'professor']:
         pessoas = Pessoa.query.filter_by(tipo=tipo).order_by(Pessoa.nome).all()
     else:
@@ -210,9 +210,10 @@ def relatorio_todos_alunos():
     
     return render_template(
         'relatorio_todos_alunos.html',
-        alunos=pessoas,  # ainda estamos usando a variável 'alunos'
+        pessoas=pessoas,  # ALTERADO: agora a variável se chama pessoas
         filtro_tipo=tipo
     )
+
 
 
 
