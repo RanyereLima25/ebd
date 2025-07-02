@@ -201,9 +201,9 @@ def relatorios():
     return render_template('relatorios.html', usuario=usuario_logado)
 
 
-@app.route('/relatorio-profissao')
+@app.route('/relatorio_alunos_por_profissao')
 @login_required
-def relatorio_profissao():
+def relatorio_alunos_por_profissao():
     profissao_filtro = request.args.get('profissao')
 
     # Lista distinta de profissões no banco (para o filtro)
@@ -216,7 +216,7 @@ def relatorio_profissao():
         alunos_filtrados = Pessoa.query.order_by(Pessoa.nome).all()
 
     return render_template(
-        'relatorio_profissao.html',
+        'relatorio_alunos_por_profissao.html',
         alunos_filtrados=alunos_filtrados,
         profissoes=profissoes
     )
