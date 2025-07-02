@@ -55,6 +55,17 @@ class Usuario(db.Model):
     def checar_senha(self, senha):
         return check_password_hash(self.senha_hash, senha)
 
+    def gerar_matricula():
+        agora = datetime.now()
+        ano = agora.year
+        mes = f'{agora.month:02d}'
+
+    # Conta quantos já foram cadastrados este mês
+        prefixo = f"{ano}.{mes}"
+        ultimo = Pessoa.query.filter(Pessoa.matricula.like(f"{prefixo}.%")).count() + 1
+        numero = f"{ultimo:04d}"
+    
+    return f"{prefixo}.{numero}"
 # =============================
 # DECORADORES E FILTROS
 # =============================
@@ -127,8 +138,13 @@ def cadastro():
     if request.method == 'POST':
         dados = request.form.to_dict()
         nascimento = dados.get('nascimento') or None
-
-        nova_pessoa = Pessoa(
+    
+    if not pessoa:  # cadastro novo
+        matricula = gerar_matricula()
+    else:
+        matricula = pessoa.matricula  # mantém matrícula antiga
+        
+        cidade=request(
             nome=dados.get('nome'),
             cpf=dados.get('cpf'),
             nascimento=nascimento,
@@ -145,7 +161,8 @@ def cadastro():
             complemento=dados.get('complemento'),
             bairro=dados.get('bairro'),
             cidade=dados.get('cidade'),
-            estado=dados.get('estado')
+            estado=dados.get('estado'),
+            matricula=matricula
         )
         db.session.add(nova_pessoa)
         db.session.commit()
