@@ -1,380 +1,240 @@
-from flask import Flask, render_template, redirect, url_for, request, session, flash
-from flask_sqlalchemy import SQLAlchemy
-from werkzeug.security import generate_password_hash, check_password_hash
-from functools import wraps
-from collections import defaultdict
-from datetime import datetime
-import os
+{% extends 'base.html' %}
 
-app = Flask(__name__)
+{% block title %}{{ 'Editar' if pessoa else 'Cadastro' }}{% endblock %}
 
-# =============================
-# CONFIGURAÇÃO DO BANCO
-# =============================
-DATABASE_URL = "postgresql://postgres.asvombxvhklbqkmprzdy:CADASTRO-EBD@aws-0-sa-east-1.pooler.supabase.com:5432/postgres"
+{% block content %}
+<h2>{{ 'Editar Cadastro' if pessoa else 'Novo Cadastro' }}</h2>
+<p class="text-muted">Usuário logado: <strong>{{ usuario }}</strong></p>
 
-app.config['SQLALCHEMY_DATABASE_URI'] = DATABASE_URL
-app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
-app.config['SECRET_KEY'] = 'ebd'
+<form method="POST" action="" class="needs-validation" novalidate>
 
-db = SQLAlchemy(app)
+    <!-- DADOS PESSOAIS -->
+    <div class="card mb-4 border-primary">
+        <div class="card-header bg-primary text-white">
+            Dados Pessoais
+        </div>
+        <div class="card-body bg-light">
+            <div class="mb-3">
+                <label class="form-label">Nome</label>
+                <input type="text" name="nome" class="form-control" required value="{{ pessoa.nome if pessoa else '' }}">
+                <div class="invalid-feedback">Por favor, informe o nome.</div>
+            </div>
+            <div class="mb-3">
+                <label class="form-label">CPF</label>
+                <input type="text" name="cpf" class="form-control" required value="{{ pessoa.cpf if pessoa else '' }}">
+                <div class="invalid-feedback">Por favor, informe o CPF.</div>
+            </div>
+            <div class="mb-3">
+                <label class="form-label">Data de Nascimento</label>
+                <input type="date" name="nascimento" class="form-control" required value="{{ pessoa.nascimento if pessoa else '' }}">
+                <div class="invalid-feedback">Por favor, informe a data de nascimento.</div>
+            </div>
+            <div class="mb-3">
+                <label class="form-label">Sexo</label>
+                <select name="sexo" class="form-select" required>
+                    <option value="" disabled selected>Selecione</option>
+                    <option value="Masculino" {{ 'selected' if pessoa and pessoa.sexo == 'Masculino' else '' }}>Masculino</option>
+                    <option value="Feminino" {{ 'selected' if pessoa and pessoa.sexo == 'Feminino' else '' }}>Feminino</option>
+                </select>
+                <div class="invalid-feedback">Por favor, selecione o sexo.</div>
+            </div>
+            <div class="mb-3">
+                <label class="form-label">Email</label>
+                <input type="email" name="email" class="form-control" required value="{{ pessoa.email if pessoa else '' }}">
+                <div class="invalid-feedback">Por favor, informe um email válido.</div>
+            </div>
+            <div class="mb-3">
+                <label class="form-label">Telefone</label>
+                <input type="text" name="telefone" class="form-control" required value="{{ pessoa.telefone if pessoa else '' }}">
+                <div class="invalid-feedback">Por favor, informe o telefone.</div>
+            </div>
+        </div>
+    </div>
 
-# =============================
-# MODELOS
-# =============================
+    <!-- ESCOLARIDADE E CURSOS -->
+    <div class="card mb-4 border-warning">
+        <div class="card-header bg-warning text-dark">
+            Escolaridade e Cursos
+        </div>
+        <div class="card-body bg-light row">
+            <div class="col-md-6 mb-3">
+                <label class="form-label">Escolaridade</label>
+                <select name="escolaridade" class="form-select">
+                    <option value="" disabled selected>Selecione</option>
+                    <option value="Nenhum">Nenhum</option>
+                    <option value="Fundamental Incompleto">Fundamental Incompleto</option>
+                    <option value="Fundamental Completo">Fundamental Completo</option>
+                    <option value="Médio Incompleto">Médio Incompleto</option>
+                    <option value="Médio Completo">Médio Completo</option>
+                    <option value="Superior Incompleto">Superior Incompleto</option>
+                    <option value="Superior Completo">Superior Completo</option>
+                </select>
+            </div>
+            <div class="col-md-6 mb-3">
+                <label class="form-label">Curso de Teologia</label>
+                <select name="curso_teologia" class="form-select">
+                    <option value="" disabled selected>Selecione</option>
+                    <option value="Sim">Sim</option>
+                    <option value="Não">Não</option>
+                </select>
+            </div>
+            <div class="col-md-6 mb-3">
+                <label class="form-label">Curso de Líder</label>
+                <select name="curso_lider" class="form-select">
+                    <option value="" disabled selected>Selecione</option>
+                    <option value="Sim">Sim</option>
+                    <option value="Não">Não</option>
+                </select>
+            </div>
+            <div class="col-md-6 mb-3">
+                <label class="form-label">Batizado</label>
+                <select name="batizado" class="form-select">
+                    <option value="" disabled selected>Selecione</option>
+                    <option value="Sim">Sim</option>
+                    <option value="Não">Não</option>
+                </select>
+            </div>
+        </div>
+    </div>
 
-class Pessoa(db.Model):
-    id = db.Column(db.Integer, primary_key=True)
-    nome = db.Column(db.String(100), nullable=False)
-    cpf = db.Column(db.String(20), nullable=False, unique=True)
-    nascimento = db.Column(db.String(10))
-    email = db.Column(db.String(100), nullable=False)
-    telefone = db.Column(db.String(20), nullable=False)
-    tipo = db.Column(db.String(20))
-    matricula = db.Column(db.String(20))
-    classe = db.Column(db.String(100), nullable=False)
-    sala = db.Column(db.String(20))
-    ano_ingresso = db.Column(db.String(4))
-    sexo = db.Column(db.String(20))
-    cep = db.Column(db.String(10))
-    rua = db.Column(db.String(100))
-    numero = db.Column(db.String(10))
-    complemento = db.Column(db.String(100))
-    bairro = db.Column(db.String(100))
-    cidade = db.Column(db.String(100))
-    estado = db.Column(db.String(100))
+    <!-- PROFISSÕES -->
+    <div class="card mb-4 border-secondary">
+        <div class="card-header bg-secondary text-white">
+            Profissão
+        </div>
+        <div class="card-body bg-light">
+            <div class="mb-3">
+                <label class="form-label">Profissão</label>
+                <select name="profissao" class="form-select" id="profissaoSelect" onchange="mostrarOutroCampo()">
+                    <option value="" selected disabled>Selecione</option>
+                    <option value="Estudante">Estudante</option>
+                    <option value="Professor">Professor</option>
+                    <option value="Técnico">Técnico</option>
+                    <option value="Administrador">Administrador</option>
+                    <option value="Engenheiro">Engenheiro</option>
+                    <option value="Advogado">Advogado</option>
+                    <option value="Médico">Médico</option>
+                    <option value="Enfermeiro">Enfermeiro</option>
+                    <option value="Policial">Policial</option>
+                    <option value="Juiz">Juiz</option>
+                    <option value="Desembargador">Desembargador</option>
+                    <option value="Parlamentar">Parlamentar</option>
+                    <option value="Outro">Outro</option>
+                </select>
+            </div>
+            <div class="mb-3" id="outraProfissaoDiv" style="display: none;">
+                <label class="form-label">Digite a profissão</label>
+                <input type="text" name="profissao_outro" class="form-control">
+            </div>
+        </div>
+    </div>
 
-class Usuario(db.Model):
-    id = db.Column(db.Integer, primary_key=True)
-    login = db.Column(db.String(150), unique=True, nullable=False)
-    senha_hash = db.Column(db.String(256), nullable=False)
+    <!-- DADOS DA MATRÍCULA -->
+    <div class="card mb-4 border-success">
+        <div class="card-header bg-success text-white">
+            Dados da Matrícula
+        </div>
+        <div class="card-body bg-light">
+            <div class="mb-3">
+                <label class="form-label">Tipo</label>
+                <select name="tipo" class="form-select" required>
+                    <option value="" disabled {{ '' if pessoa and pessoa.tipo else 'selected' }}>Selecione</option>
+                    <option value="Aluno" {{ 'selected' if pessoa and pessoa.tipo == 'Aluno' else '' }}>Aluno</option>
+                    <option value="Professor" {{ 'selected' if pessoa and pessoa.tipo == 'Professor' else '' }}>Professor</option>
+                    <option value="Secretario" {{ 'selected' if pessoa and pessoa.tipo == 'Secretario' else '' }}>Secretário</option>
+                </select>
+                <div class="invalid-feedback">Por favor, selecione se é Aluno, Professor ou Secretário.</div>
+            </div>
+            <div class="mb-3">
+                <label class="form-label">Matrícula</label>
+                <input type="text" name="matricula" class="form-control" required value="{{ pessoa.matricula if pessoa else '' }}">
+                <div class="invalid-feedback">Por favor, informe a matrícula.</div>
+            </div>
+            <div class="mb-3">
+                <label class="form-label">Classe</label>
+                <input type="text" name="classe" class="form-control" required value="{{ pessoa.classe if pessoa else '' }}">
+                <div class="invalid-feedback">Por favor, informe a classe.</div>
+            </div>
+            <div class="mb-3">
+                <label class="form-label">Sala</label>
+                <input type="text" name="sala" class="form-control" value="{{ pessoa.sala if pessoa else '' }}">
+            </div>
+            <div class="mb-3">
+                <label class="form-label">Ano de Ingresso</label>
+                <input type="text" name="ano_ingresso" class="form-control" value="{{ pessoa.ano_ingresso if pessoa else '' }}">
+            </div>
+        </div>
+    </div>
 
-    def set_senha(self, senha):
-        self.senha_hash = generate_password_hash(senha)
+    <!-- DADOS DE ENDEREÇO -->
+    <div class="card mb-4 border-info">
+        <div class="card-header bg-info text-white">
+            Dados de Endereço
+        </div>
+        <div class="card-body bg-light">
+            <div class="mb-3">
+                <label class="form-label">CEP</label>
+                <input type="text" name="cep" class="form-control" required value="{{ pessoa.cep if pessoa else '' }}">
+                <div class="invalid-feedback">Por favor, informe o CEP.</div>
+            </div>
+            <div class="mb-3">
+                <label class="form-label">Rua</label>
+                <input type="text" name="rua" class="form-control" required value="{{ pessoa.rua if pessoa else '' }}">
+                <div class="invalid-feedback">Por favor, informe a rua.</div>
+            </div>
+            <div class="mb-3">
+                <label class="form-label">Número</label>
+                <input type="text" name="numero" class="form-control" required value="{{ pessoa.numero if pessoa else '' }}">
+                <div class="invalid-feedback">Por favor, informe o número.</div>
+            </div>
+            <div class="mb-3">
+                <label class="form-label">Complemento</label>
+                <input type="text" name="complemento" class="form-control" value="{{ pessoa.complemento if pessoa else '' }}">
+            </div>
+            <div class="mb-3">
+                <label class="form-label">Bairro</label>
+                <input type="text" name="bairro" class="form-control" required value="{{ pessoa.bairro if pessoa else '' }}">
+                <div class="invalid-feedback">Por favor, informe o bairro.</div>
+            </div>
+            <div class="mb-3">
+                <label class="form-label">Cidade</label>
+                <input type="text" name="cidade" class="form-control" required value="{{ pessoa.cidade if pessoa else '' }}">
+                <div class="invalid-feedback">Por favor, informe a cidade.</div>
+            </div>
+            <div class="mb-3">
+                <label class="form-label">Estado</label>
+                <input type="text" name="estado" class="form-control" required value="{{ pessoa.estado if pessoa else '' }}">
+                <div class="invalid-feedback">Por favor, informe o estado.</div>
+            </div>
+        </div>
+    </div>
 
-    def checar_senha(self, senha):
-        return check_password_hash(self.senha_hash, senha)
+    <!-- BOTÕES -->
+    <button type="submit" class="btn btn-success">Salvar</button>
+    <a href="{{ url_for('visualizar') }}" class="btn btn-secondary">Cancelar</a>
+</form>
 
-    def gerar_matricula():
-    from datetime import datetime
-    agora = datetime.now()
-    ano = agora.year
-    mes = f'{agora.month:02d}'
-    prefixo = f"{ano}.{mes}"
+<!-- SCRIPT DE VALIDAÇÃO -->
+<script>
+    (function () {
+        'use strict';
+        var forms = document.querySelectorAll('.needs-validation');
+        Array.prototype.slice.call(forms)
+            .forEach(function (form) {
+                form.addEventListener('submit', function (event) {
+                    if (!form.checkValidity()) {
+                        event.preventDefault();
+                        event.stopPropagation();
+                    }
+                    form.classList.add('was-validated');
+                }, false);
+            });
+    })();
 
-    # Contar quantas matrículas já existem neste mês
-    ultimo = Pessoa.query.filter(Pessoa.matricula.like(f"{prefixo}.%")).count() + 1
-    numero = f"{ultimo:04d}"
-
-    return f"{prefixo}.{numero}"
-# =============================
-# DECORADORES E FILTROS
-# =============================
-
-def login_required(f):
-    @wraps(f)
-    def decorated_function(*args, **kwargs):
-        if 'usuario_id' not in session:
-            flash('Você precisa estar logado para acessar esta página.')
-            return redirect(url_for('login'))
-        return f(*args, **kwargs)
-    return decorated_function
-
-@app.template_filter('formatadata')
-def formatadata(value):
-    if not value:
-        return "-"
-    try:
-        return datetime.strptime(value, '%Y-%m-%d').strftime('%d/%m/%Y')
-    except Exception:
-        return value
-
-# =============================
-# ROTAS
-# =============================
-
-@app.route('/')
-def index():
-    return redirect(url_for('login'))
-
-@app.route('/login', methods=['GET', 'POST'])
-def login():
-    if request.method == 'POST':
-        login_form = request.form['login']
-        senha_form = request.form['senha']
-        usuario = Usuario.query.filter_by(login=login_form).first()
-        if usuario and usuario.checar_senha(senha_form):
-            session['usuario_id'] = usuario.id
-            flash('Login realizado com sucesso.')
-            return redirect(url_for('visualizar'))
-        else:
-            flash('Login ou senha inválidos.')
-    return render_template('login.html')
-
-@app.route('/logout')
-def logout():
-    session.pop('usuario_id', None)
-    flash('Você saiu do sistema.')
-    return redirect(url_for('login'))
-
-@app.route('/registrar', methods=['GET', 'POST'])
-def registrar():
-    if request.method == 'POST':
-        login_form = request.form['login']
-        senha_form = request.form['senha']
-        if Usuario.query.filter_by(login=login_form).first():
-            flash('Usuário já existe.')
-        else:
-            novo_usuario = Usuario(login=login_form)
-            novo_usuario.set_senha(senha_form)
-            db.session.add(novo_usuario)
-            db.session.commit()
-            flash('Usuário registrado com sucesso.')
-            return redirect(url_for('login'))
-    return render_template('registrar.html')
-
-@app.route('/cadastro', methods=['GET', 'POST'])
-@login_required
-def cadastro():
-    if request.method == 'POST':
-        dados = request.form.to_dict()
-        nascimento = dados.get('nascimento') or None
-    
-    if not pessoa:  # cadastro novo
-        matricula = gerar_matricula()
-    else:
-        matricula = pessoa.matricula  # mantém matrícula antiga
-        
-        cidade=request(
-            nome=dados.get('nome'),
-            cpf=dados.get('cpf'),
-            nascimento=nascimento,
-            email=dados.get('email'),
-            telefone=dados.get('telefone'),
-            tipo=dados.get('tipo'),
-            matricula=dados.get('matricula'),
-            classe=dados.get('classe'),
-            sala=dados.get('sala'),
-            ano_ingresso=dados.get('ano_ingresso'),
-            cep=dados.get('cep'),
-            rua=dados.get('rua'),
-            numero=dados.get('numero'),
-            complemento=dados.get('complemento'),
-            bairro=dados.get('bairro'),
-            cidade=dados.get('cidade'),
-            estado=dados.get('estado'),
-            matricula=matricula
-        )
-        db.session.add(nova_pessoa)
-        db.session.commit()
-        flash('Cadastro realizado com sucesso.')
-        return redirect(url_for('visualizar'))
-
-    usuario_logado = Usuario.query.get(session['usuario_id']).login
-    return render_template('cadastro.html', usuario=usuario_logado)
-
-@app.route('/visualizar')
-@login_required
-def visualizar():
-    busca = request.args.get('busca', '').strip()
-    ordem = request.args.get('ordem', '')
-
-    query = Pessoa.query
-    if busca:
-        query = query.filter(Pessoa.nome.ilike(f'%{busca}%'))
-    if ordem == 'classe':
-        query = query.order_by(Pessoa.classe)
-
-    pessoas = query.all()
-    usuario_logado = Usuario.query.get(session['usuario_id']).login
-
-    return render_template('visualizar.html', pessoas=pessoas, total=len(pessoas), usuario=usuario_logado)
-
-@app.route('/relatorios')
-@login_required
-def relatorios():
-    usuario_logado = Usuario.query.get(session['usuario_id']).login
-    return render_template('relatorios.html', usuario=usuario_logado)
-
-@app.route('/relatorio-por-classe')
-@login_required
-def relatorio_por_classe():
-    alunos = Pessoa.query.order_by(Pessoa.classe, Pessoa.nome).all()
-    dados_por_classe = defaultdict(list)
-    for aluno in alunos:
-        dados_por_classe[aluno.classe].append(aluno)
-    return render_template('relatorio_por_classe.html', dados_por_classe=dados_por_classe)
-
-
-@app.route('/relatorio-todos-alunos')
-@login_required
-def relatorio_todos_alunos():
-    tipo = request.args.get('tipo')      # filtro tipo: Aluno, Professor, Secretario, ou None para todos
-    classe = request.args.get('classe')  # filtro classe: nome da classe ou None para todas
-
-    query = Pessoa.query
-
-    # Filtrar pelo tipo se for um valor válido
-    tipos_validos = ['Aluno', 'Professor', 'Secretario']
-    if tipo and tipo in tipos_validos:
-        query = query.filter_by(tipo=tipo)
-
-    # Filtrar pela classe se selecionada
-    if classe:
-        query = query.filter_by(classe=classe)
-
-    # Ordenar por classe e nome
-    pessoas = query.order_by(Pessoa.classe, Pessoa.nome).all()
-
-    # Agrupar por classe para o template
-    dados_por_classe = {}
-    for p in pessoas:
-        chave_classe = p.classe if p.classe else 'Sem Classe'
-        dados_por_classe.setdefault(chave_classe, []).append(p)
-
-    return render_template(
-        'relatorio_todos_alunos.html',
-        pessoas=pessoas,
-        dados_por_classe=dados_por_classe,
-        filtro_tipo=tipo,
-        filtro_classe=classe
-    )
-
-
-
-@app.route('/relatorio-aniversariantes')
-@login_required
-def relatorio_aniversariantes():
-    hoje = datetime.now()
-    pessoas = Pessoa.query.all()
-
-    aniversariantes_por_semana = {
-        "1": [],  # Dias 1 a 7
-        "2": [],  # Dias 8 a 14
-        "3": [],  # Dias 15 a 21
-        "4": []   # Dias 22 em diante
+    function mostrarOutroCampo() {
+        const select = document.getElementById('profissaoSelect');
+        const outro = document.getElementById('outraProfissaoDiv');
+        outro.style.display = select.value === 'Outro' ? 'block' : 'none';
     }
-
-    for p in pessoas:
-        nascimento = p.nascimento
-        if not nascimento:
-            continue
-
-        try:
-            # Caso seja string, converte. Caso já seja date, continua.
-            if isinstance(nascimento, str):
-                data = datetime.strptime(nascimento, '%Y-%m-%d')
-            else:
-                data = nascimento  # já é datetime.date
-            if data.month == hoje.month:
-                dia = data.day
-                if dia <= 7:
-                    aniversariantes_por_semana["1"].append(p)
-                elif dia <= 14:
-                    aniversariantes_por_semana["2"].append(p)
-                elif dia <= 21:
-                    aniversariantes_por_semana["3"].append(p)
-                else:
-                    aniversariantes_por_semana["4"].append(p)
-        except Exception as e:
-            print(f"Erro ao processar nascimento de {p.nome}: {e}")
-            continue
-
-    return render_template(
-        'relatorio_aniversariantes.html',
-        agora=hoje,
-        aniversariantes_por_semana=aniversariantes_por_semana
-    )
-
-
-
-@app.route('/relatorio-por-tempo')
-@login_required
-def relatorio_por_tempo():
-    tempo = request.args.get('tempo')
-    ano_atual = datetime.now().year
-
-    alunos = Pessoa.query.order_by(Pessoa.classe, Pessoa.nome).all()
-    alunos_filtrados = []
-
-    if tempo and tempo.isdigit():
-        tempo = int(tempo)
-        for aluno in alunos:
-            if aluno.ano_ingresso and aluno.ano_ingresso.isdigit():
-                anos_no_sistema = ano_atual - int(aluno.ano_ingresso)
-                if anos_no_sistema == tempo:
-                    alunos_filtrados.append(aluno)
-    else:
-        alunos_filtrados = alunos
-
-    return render_template('relatorio_por_tempo.html', alunos_filtrados=alunos_filtrados)
-
-@app.route('/graficos')
-@login_required
-def graficos():
-    # Gráfico 1: Alunos por Classe
-    dados = db.session.query(Pessoa.classe, db.func.count(Pessoa.id)).group_by(Pessoa.classe).all()
-    labels = [d[0] for d in dados]
-    valores = [d[1] for d in dados]
-
-    # Gráfico 2: Matrículas por Gênero - com tratamento de caixa e acento
-    pessoas = Pessoa.query.all()
-    contagem_genero = {"Masculino": 0, "Feminino": 0, "Outros": 0}
-
-    for pessoa in pessoas:
-        sexo_raw = (pessoa.sexo or "").strip().lower()
-
-        # Padronizando para aceitar várias formas
-        if sexo_raw in ['masculino', 'm', 'masc']:
-            contagem_genero["Masculino"] += 1
-        elif sexo_raw in ['feminino', 'f', 'fem']:
-            contagem_genero["Feminino"] += 1
-        else:
-            contagem_genero["Outros"] += 1
-
-    genero_labels = list(contagem_genero.keys())
-    genero_valores = list(contagem_genero.values())
-
-    # Usuário logado
-    usuario_logado = Usuario.query.get(session['usuario_id']).login
-
-    return render_template(
-        'graficos.html',
-        labels=labels,
-        valores=valores,
-        genero_labels=genero_labels,
-        genero_valores=genero_valores,
-        usuario=usuario_logado
-    )
-
-
-
-@app.route('/editar/<int:pessoa_id>', methods=['GET', 'POST'])
-@login_required
-def editar(pessoa_id):
-    pessoa = Pessoa.query.get_or_404(pessoa_id)
-    if request.method == 'POST':
-        for campo in request.form:
-            if hasattr(pessoa, campo):
-                setattr(pessoa, campo, request.form[campo])
-        db.session.commit()
-        flash('Cadastro atualizado com sucesso.')
-        return redirect(url_for('visualizar'))
-    return render_template('editar.html', pessoa=pessoa)
-
-@app.route('/excluir/<int:pessoa_id>')
-@login_required
-def excluir(pessoa_id):
-    pessoa = Pessoa.query.get_or_404(pessoa_id)
-    db.session.delete(pessoa)
-    db.session.commit()
-    flash('Cadastro excluído com sucesso.')
-    return redirect(url_for('visualizar'))
-
-# =============================
-# EXECUÇÃO
-# =============================
-if __name__ == '__main__':
-    with app.app_context():
-        db.create_all()  # Cria as tabelas se não existirem
-    app.run(debug=True)
+</script>
+{% endblock %}
