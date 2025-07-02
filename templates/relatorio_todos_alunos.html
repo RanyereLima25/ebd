@@ -4,9 +4,9 @@
 
 {% block content %}
 <h2 class="mb-4">Relatório: 
-  {% if filtro_tipo == 'professor' %}
+  {% if filtro_tipo == 'Professor' %}
     Professores
-  {% elif filtro_tipo == 'aluno' %}
+  {% elif filtro_tipo == 'Aluno' %}
     Alunos
   {% else %}
     Alunos e Professores
@@ -17,14 +17,14 @@
   <label for="tipo">Filtrar por:</label>
   <select name="tipo" id="tipo" onchange="this.form.submit()" class="form-select w-auto d-inline mx-2">
     <option value="" {% if not filtro_tipo %}selected{% endif %}>Todos</option>
-    <option value="aluno" {% if filtro_tipo == 'aluno' %}selected{% endif %}>Alunos</option>
-    <option value="professor" {% if filtro_tipo == 'professor' %}selected{% endif %}>Professores</option>
+    <option value="Aluno" {% if filtro_tipo == 'Aluno' %}selected{% endif %}>Alunos</option>
+    <option value="Professor" {% if filtro_tipo == 'Professor' %}selected{% endif %}>Professores</option>
   </select>
 </form>
 
 <p><strong>Total de 
-  {% if filtro_tipo == 'aluno' %}alunos
-  {% elif filtro_tipo == 'professor' %}professores
+  {% if filtro_tipo == 'Aluno' %}alunos
+  {% elif filtro_tipo == 'Professor' %}professores
   {% else %}pessoas
   {% endif %}:</strong> {{ pessoas|length }}
 </p>
@@ -49,7 +49,7 @@
           -
         {% endif %}
       </td>
-      <td>{{ pessoa.tipo|capitalize }}</td>
+      <td>{{ pessoa.tipo }}</td>
     </tr>
     {% endfor %}
   </tbody>
