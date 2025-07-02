@@ -1,3 +1,5 @@
+setuptools>=65.0.0
+wheel>=0.38.0
 Flask
 gunicorn
 altair==5.4.1
