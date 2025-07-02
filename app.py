@@ -269,12 +269,28 @@ def relatorio_por_tempo():
 @app.route('/graficos')
 @login_required
 def graficos():
+    # Gráfico 1: Alunos por Classe
     dados = db.session.query(Pessoa.classe, db.func.count(Pessoa.id)).group_by(Pessoa.classe).all()
     labels = [d[0] for d in dados]
     valores = [d[1] for d in dados]
 
+    # Gráfico 2: Matrículas por Gênero (Sexo)
+    dados_genero = db.session.query(Pessoa.sexo, db.func.count(Pessoa.id)).group_by(Pessoa.sexo).all()
+    genero_labels = [sexo if sexo else 'Não Informado' for sexo, _ in dados_genero]
+    genero_valores = [qtd for _, qtd in dados_genero]
+
+    # Usuário logado
     usuario_logado = Usuario.query.get(session['usuario_id']).login
-    return render_template('graficos.html', labels=labels, valores=valores, usuario=usuario_logado)
+
+    return render_template(
+        'graficos.html',
+        labels=labels,                    # Gráfico 1
+        valores=valores,
+        genero_labels=genero_labels,      # Gráfico 2
+        genero_valores=genero_valores,
+        usuario=usuario_logado
+    )
+
 
 @app.route('/editar/<int:pessoa_id>', methods=['GET', 'POST'])
 @login_required
