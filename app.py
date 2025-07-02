@@ -8,6 +8,24 @@ import os
 
 app = Flask(__name__)
 
+@app.template_filter('mes_em_portugues')
+def mes_em_portugues(mes_ingles):
+    meses = {
+        'January': 'Janeiro',
+        'February': 'Fevereiro',
+        'March': 'Março',
+        'April': 'Abril',
+        'May': 'Maio',
+        'June': 'Junho',
+        'July': 'Julho',
+        'August': 'Agosto',
+        'September': 'Setembro',
+        'October': 'Outubro',
+        'November': 'Novembro',
+        'December': 'Dezembro'
+    }
+    return meses.get(mes_ingles, mes_ingles)
+
 # =============================
 # CONFIGURAÇÃO DO BANCO
 # =============================
