@@ -55,19 +55,15 @@ class Usuario(db.Model):
     def checar_senha(self, senha):
         return check_password_hash(self.senha_hash, senha)
 
+    @staticmethod
     def gerar_matricula():
-    from datetime import datetime
-    agora = datetime.now()
-    ano = agora.year
-    mes = f'{agora.month:02d}'
-    prefixo = f"{ano}.{mes}"
-
-    # Verificar quantas matrículas já existem no mês
-    from models import Pessoa  # importe correto do seu modelo Pessoa
-    ultimo = Pessoa.query.filter(Pessoa.matricula.like(f"{prefixo}.%")).count() + 1
-    numero = f"{ultimo:04d}"
-
-    return f"{prefixo}.{numero}"
+        agora = datetime.now()
+        ano = agora.year
+        mes = f'{agora.month:02d}'
+        prefixo = f"{ano}.{mes}"
+        ultimo = Pessoa.query.filter(Pessoa.matricula.like(f"{prefixo}.%")).count() + 1
+        numero = f"{ultimo:04d}"
+        return f"{prefixo}.{numero}"
 
 # =============================
 # DECORADORES E FILTROS
@@ -141,20 +137,14 @@ def cadastro():
     if request.method == 'POST':
         dados = request.form.to_dict()
         nascimento = dados.get('nascimento') or None
-    
-    if not pessoa:  # cadastro novo
-        matricula = gerar_matricula()
-    else:
-        matricula = pessoa.matricula  # mantém matrícula antiga
-        
-        cidade=request(
+        nova_pessoa = Pessoa(
             nome=dados.get('nome'),
             cpf=dados.get('cpf'),
             nascimento=nascimento,
             email=dados.get('email'),
             telefone=dados.get('telefone'),
             tipo=dados.get('tipo'),
-            matricula=dados.get('matricula'),
+            matricula=Usuario.gerar_matricula(),
             classe=dados.get('classe'),
             sala=dados.get('sala'),
             ano_ingresso=dados.get('ano_ingresso'),
@@ -164,8 +154,7 @@ def cadastro():
             complemento=dados.get('complemento'),
             bairro=dados.get('bairro'),
             cidade=dados.get('cidade'),
-            estado=dados.get('estado'),
-            matricula=matricula
+            estado=dados.get('estado')
         )
         db.session.add(nova_pessoa)
         db.session.commit()
@@ -207,67 +196,39 @@ def relatorio_por_classe():
         dados_por_classe[aluno.classe].append(aluno)
     return render_template('relatorio_por_classe.html', dados_por_classe=dados_por_classe)
 
-
 @app.route('/relatorio-todos-alunos')
 @login_required
 def relatorio_todos_alunos():
-    tipo = request.args.get('tipo')      # filtro tipo: Aluno, Professor, Secretario, ou None para todos
-    classe = request.args.get('classe')  # filtro classe: nome da classe ou None para todas
-
+    tipo = request.args.get('tipo')
+    classe = request.args.get('classe')
     query = Pessoa.query
-
-    # Filtrar pelo tipo se for um valor válido
     tipos_validos = ['Aluno', 'Professor', 'Secretario']
     if tipo and tipo in tipos_validos:
         query = query.filter_by(tipo=tipo)
-
-    # Filtrar pela classe se selecionada
     if classe:
         query = query.filter_by(classe=classe)
-
-    # Ordenar por classe e nome
     pessoas = query.order_by(Pessoa.classe, Pessoa.nome).all()
-
-    # Agrupar por classe para o template
-    dados_por_classe = {}
+    dados_por_classe = defaultdict(list)
     for p in pessoas:
         chave_classe = p.classe if p.classe else 'Sem Classe'
-        dados_por_classe.setdefault(chave_classe, []).append(p)
-
-    return render_template(
-        'relatorio_todos_alunos.html',
-        pessoas=pessoas,
-        dados_por_classe=dados_por_classe,
-        filtro_tipo=tipo,
-        filtro_classe=classe
-    )
-
-
+        dados_por_classe[chave_classe].append(p)
+    return render_template('relatorio_todos_alunos.html', pessoas=pessoas, dados_por_classe=dados_por_classe, filtro_tipo=tipo, filtro_classe=classe)
 
 @app.route('/relatorio-aniversariantes')
 @login_required
 def relatorio_aniversariantes():
     hoje = datetime.now()
     pessoas = Pessoa.query.all()
-
-    aniversariantes_por_semana = {
-        "1": [],  # Dias 1 a 7
-        "2": [],  # Dias 8 a 14
-        "3": [],  # Dias 15 a 21
-        "4": []   # Dias 22 em diante
-    }
-
+    aniversariantes_por_semana = {"1": [], "2": [], "3": [], "4": []}
     for p in pessoas:
         nascimento = p.nascimento
         if not nascimento:
             continue
-
         try:
-            # Caso seja string, converte. Caso já seja date, continua.
             if isinstance(nascimento, str):
                 data = datetime.strptime(nascimento, '%Y-%m-%d')
             else:
-                data = nascimento  # já é datetime.date
+                data = nascimento
             if data.month == hoje.month:
                 dia = data.day
                 if dia <= 7:
@@ -281,24 +242,15 @@ def relatorio_aniversariantes():
         except Exception as e:
             print(f"Erro ao processar nascimento de {p.nome}: {e}")
             continue
-
-    return render_template(
-        'relatorio_aniversariantes.html',
-        agora=hoje,
-        aniversariantes_por_semana=aniversariantes_por_semana
-    )
-
-
+    return render_template('relatorio_aniversariantes.html', agora=hoje, aniversariantes_por_semana=aniversariantes_por_semana)
 
 @app.route('/relatorio-por-tempo')
 @login_required
 def relatorio_por_tempo():
     tempo = request.args.get('tempo')
     ano_atual = datetime.now().year
-
     alunos = Pessoa.query.order_by(Pessoa.classe, Pessoa.nome).all()
     alunos_filtrados = []
-
     if tempo and tempo.isdigit():
         tempo = int(tempo)
         for aluno in alunos:
@@ -308,48 +260,28 @@ def relatorio_por_tempo():
                     alunos_filtrados.append(aluno)
     else:
         alunos_filtrados = alunos
-
     return render_template('relatorio_por_tempo.html', alunos_filtrados=alunos_filtrados)
 
 @app.route('/graficos')
 @login_required
 def graficos():
-    # Gráfico 1: Alunos por Classe
     dados = db.session.query(Pessoa.classe, db.func.count(Pessoa.id)).group_by(Pessoa.classe).all()
     labels = [d[0] for d in dados]
     valores = [d[1] for d in dados]
-
-    # Gráfico 2: Matrículas por Gênero - com tratamento de caixa e acento
     pessoas = Pessoa.query.all()
     contagem_genero = {"Masculino": 0, "Feminino": 0, "Outros": 0}
-
     for pessoa in pessoas:
         sexo_raw = (pessoa.sexo or "").strip().lower()
-
-        # Padronizando para aceitar várias formas
         if sexo_raw in ['masculino', 'm', 'masc']:
             contagem_genero["Masculino"] += 1
         elif sexo_raw in ['feminino', 'f', 'fem']:
             contagem_genero["Feminino"] += 1
         else:
             contagem_genero["Outros"] += 1
-
     genero_labels = list(contagem_genero.keys())
     genero_valores = list(contagem_genero.values())
-
-    # Usuário logado
     usuario_logado = Usuario.query.get(session['usuario_id']).login
-
-    return render_template(
-        'graficos.html',
-        labels=labels,
-        valores=valores,
-        genero_labels=genero_labels,
-        genero_valores=genero_valores,
-        usuario=usuario_logado
-    )
-
-
+    return render_template('graficos.html', labels=labels, valores=valores, genero_labels=genero_labels, genero_valores=genero_valores, usuario=usuario_logado)
 
 @app.route('/editar/<int:pessoa_id>', methods=['GET', 'POST'])
 @login_required
@@ -378,5 +310,5 @@ def excluir(pessoa_id):
 # =============================
 if __name__ == '__main__':
     with app.app_context():
-        db.create_all()  # Cria as tabelas se não existirem
+        db.create_all()
     app.run(debug=True)
