@@ -28,8 +28,8 @@
     // Dados recebidos do Flask
     const labels1 = {{ labels | tojson }};
     const dados1 = {{ valores | tojson }};
-    const labels2 = ['Masculino', 'Feminino', 'Outros'];
-    const dados2 = [45, 60, 5];
+    const labels2 = {{ genero_labels | tojson }};
+    const dados2 = {{ genero_valores | tojson }};
     const labels3 = ['Janeiro', 'Fevereiro', 'Março', 'Abril', 'Maio'];
     const dados3 = [7.5, 6.8, 8.2, 7.9, 8.5];
 
@@ -103,5 +103,3 @@
     }
 </script>
 {% endblock %}
-<!-- Template graficos.html -->
-<!-- Template graficos.html -->
