@@ -9,23 +9,29 @@
 <hr>
 
 <!-- NOVOS RELATÓRIOS -->
-<h4>Gerador de Relatórios</h4>
+<h4 class="mb-3">Gerador de Relatórios</h4>
 
-<ul class="list-group">
-  <li class="list-group-item">
-    <a href="{{ url_for('relatorio_por_classe') }}">📘 Alunos por Classe</a>
-  </li>
-  <li class="list-group-item">
-    <a href="{{ url_for('relatorio_todos_alunos') }}">📋 Todos os Alunos</a>
-  </li>
-  <li class="list-group-item">
-    <a href="{{ url_for('relatorio_aniversariantes') }}">🎂 Aniversariantes do Mês</a>
-  </li>
-  <li class="list-group-item">
-    <a href="{{ url_for('relatorio_por_tempo') }}">⏳ Alunos por Tempo de Ingresso</a>
-  </li>
-</ul>
+<div class="d-grid gap-3">
 
+  <a href="{{ url_for('relatorio_por_classe') }}" class="btn btn-primary btn-lg">
+    📘 Alunos por Classe
+  </a>
+
+  <a href="{{ url_for('relatorio_todos_alunos') }}" class="btn btn-success btn-lg">
+    📋 Todos os Alunos
+  </a>
+
+  <a href="{{ url_for('relatorio_aniversariantes') }}" class="btn btn-warning btn-lg text-dark">
+    🎂 Aniversariantes do Mês
+  </a>
+
+  <a href="{{ url_for('relatorio_por_tempo') }}" class="btn btn-info btn-lg">
+    ⏳ Alunos por Tempo de Ingresso
+  </a>
+
+</div>
+
+<!-- RODAPÉ -->
 <footer style="
     background-color: #f8f9fa;
     padding: 1.5rem 1rem;
@@ -45,7 +51,4 @@
     <span style="font-weight: 700; color: #1a1a1a;">Registrado:</span> Ranyere Lima
   </p>
 </footer>
-
 {% endblock %}
-<!-- Template relatorios.html -->
-<!-- Template relatorios.html -->
