@@ -11,7 +11,6 @@ app = Flask(__name__)
 # =============================
 # CONFIGURAÇÃO DO BANCO
 # =============================
-#DATABASE_URL = os.getenv('DATABASE_URL') or 'postgresql://ebd_db_k5jg_user:gr5VUsZ4cS03LAp6jSuYUBDXMWZyxoUh@dpg-d0u8c1c9c44c73aghr0g-a.oregon-postgres.render.com/ebd_db_k5jg'
 DATABASE_URL = "postgresql://postgres.asvombxvhklbqkmprzdy:CADASTRO-EBD@aws-0-sa-east-1.pooler.supabase.com:5432/postgres"
 
 app.config['SQLALCHEMY_DATABASE_URI'] = DATABASE_URL
@@ -28,7 +27,7 @@ class Pessoa(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     nome = db.Column(db.String(100), nullable=False)
     cpf = db.Column(db.String(20), nullable=False, unique=True)
-    nascimento = db.Column(db.String(10))  # Formato: 'YYYY-MM-DD'
+    nascimento = db.Column(db.String(10))
     email = db.Column(db.String(100), nullable=False)
     telefone = db.Column(db.String(20), nullable=False)
     tipo = db.Column(db.String(20))
@@ -55,7 +54,6 @@ class Usuario(db.Model):
     def checar_senha(self, senha):
         return check_password_hash(self.senha_hash, senha)
 
-
 # =============================
 # DECORADORES E FILTROS
 # =============================
@@ -78,7 +76,6 @@ def formatadata(value):
     except Exception:
         return value
 
-
 # =============================
 # ROTAS
 # =============================
@@ -87,7 +84,6 @@ def formatadata(value):
 def index():
     return redirect(url_for('login'))
 
-# ---------- LOGIN ----------
 @app.route('/login', methods=['GET', 'POST'])
 def login():
     if request.method == 'POST':
@@ -108,7 +104,6 @@ def logout():
     flash('Você saiu do sistema.')
     return redirect(url_for('login'))
 
-# ---------- REGISTRO ----------
 @app.route('/registrar', methods=['GET', 'POST'])
 def registrar():
     if request.method == 'POST':
@@ -125,7 +120,6 @@ def registrar():
             return redirect(url_for('login'))
     return render_template('registrar.html')
 
-# ---------- CADASTRO ----------
 @app.route('/cadastro', methods=['GET', 'POST'])
 @login_required
 def cadastro():
@@ -160,7 +154,6 @@ def cadastro():
     usuario_logado = Usuario.query.get(session['usuario_id']).login
     return render_template('cadastro.html', usuario=usuario_logado)
 
-# ---------- VISUALIZAR ----------
 @app.route('/visualizar')
 @login_required
 def visualizar():
@@ -178,7 +171,6 @@ def visualizar():
 
     return render_template('visualizar.html', pessoas=pessoas, total=len(pessoas), usuario=usuario_logado)
 
-# ---------- RELATÓRIOS ----------
 @app.route('/relatorios')
 @login_required
 def relatorios():
@@ -194,12 +186,6 @@ def relatorio_por_classe():
         dados_por_classe[aluno.classe].append(aluno)
     return render_template('relatorio_por_classe.html', dados_por_classe=dados_por_classe)
 
-#@app.route('/relatorio-todos-alunos')
-#@login_required
-#def relatorio_todos_alunos():
-#   alunos = Pessoa.query.order_by(Pessoa.nome).all()
-#   return render_template('relatorio_todos_alunos.html', alunos=alunos)
-
 @app.route('/relatorio-todos-alunos')
 @login_required
 def relatorio_todos_alunos():
@@ -211,12 +197,9 @@ def relatorio_todos_alunos():
     
     return render_template(
         'relatorio_todos_alunos.html',
-        pessoas=pessoas,  # ALTERADO: agora a variável se chama pessoas
+        pessoas=pessoas,
         filtro_tipo=tipo
     )
-
-
-
 
 @app.route('/relatorio-aniversariantes')
 @login_required
@@ -248,7 +231,6 @@ def relatorio_por_tempo():
 
     return render_template('relatorio_por_tempo.html', alunos_filtrados=alunos_filtrados)
 
-# ---------- GRÁFICOS ----------
 @app.route('/graficos')
 @login_required
 def graficos():
@@ -259,7 +241,6 @@ def graficos():
     usuario_logado = Usuario.query.get(session['usuario_id']).login
     return render_template('graficos.html', labels=labels, valores=valores, usuario=usuario_logado)
 
-# ---------- EDITAR ----------
 @app.route('/editar/<int:pessoa_id>', methods=['GET', 'POST'])
 @login_required
 def editar(pessoa_id):
@@ -273,7 +254,6 @@ def editar(pessoa_id):
         return redirect(url_for('visualizar'))
     return render_template('editar.html', pessoa=pessoa)
 
-# ---------- EXCLUIR ----------
 @app.route('/excluir/<int:pessoa_id>')
 @login_required
 def excluir(pessoa_id):
@@ -283,11 +263,10 @@ def excluir(pessoa_id):
     flash('Cadastro excluído com sucesso.')
     return redirect(url_for('visualizar'))
 
-
 # =============================
 # EXECUÇÃO
 # =============================
 if __name__ == '__main__':
     with app.app_context():
-        db.create_all()
+        db.create_all()  # Cria as tabelas se não existirem
     app.run(debug=True)
