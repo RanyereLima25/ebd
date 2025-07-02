@@ -35,6 +35,7 @@ class Pessoa(db.Model):
     classe = db.Column(db.String(100), nullable=False)
     sala = db.Column(db.String(20))
     ano_ingresso = db.Column(db.String(4))
+    sexo = db.Column(db.String(20))
     cep = db.Column(db.String(10))
     rua = db.Column(db.String(100))
     numero = db.Column(db.String(10))
