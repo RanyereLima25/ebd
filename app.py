@@ -275,22 +275,36 @@ def graficos():
     labels = [d[0] for d in dados]
     valores = [d[1] for d in dados]
 
-    # Gráfico 2: Matrículas por Gênero (Sexo)
-    dados_genero = db.session.query(Pessoa.sexo, db.func.count(Pessoa.id)).group_by(Pessoa.sexo).all()
-    genero_labels = [sexo if sexo else 'Não Informado' for sexo, _ in dados_genero]
-    genero_valores = [qtd for _, qtd in dados_genero]
+    # Gráfico 2: Matrículas por Gênero - com tratamento de caixa e acento
+    pessoas = Pessoa.query.all()
+    contagem_genero = {"Masculino": 0, "Feminino": 0, "Outros": 0}
+
+    for pessoa in pessoas:
+        sexo_raw = (pessoa.sexo or "").strip().lower()
+
+        # Padronizando para aceitar várias formas
+        if sexo_raw in ['masculino', 'm', 'masc']:
+            contagem_genero["Masculino"] += 1
+        elif sexo_raw in ['feminino', 'f', 'fem']:
+            contagem_genero["Feminino"] += 1
+        else:
+            contagem_genero["Outros"] += 1
+
+    genero_labels = list(contagem_genero.keys())
+    genero_valores = list(contagem_genero.values())
 
     # Usuário logado
     usuario_logado = Usuario.query.get(session['usuario_id']).login
 
     return render_template(
         'graficos.html',
-        labels=labels,                    # Gráfico 1
+        labels=labels,
         valores=valores,
-        genero_labels=genero_labels,      # Gráfico 2
+        genero_labels=genero_labels,
         genero_valores=genero_valores,
         usuario=usuario_logado
     )
+
 
 
 @app.route('/editar/<int:pessoa_id>', methods=['GET', 'POST'])
