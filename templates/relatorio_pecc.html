@@ -1,0 +1,58 @@
+{% extends 'base.html' %}
+
+{% block title %}Relatório PECC - Alunos por Ano{% endblock %}
+
+{% block content %}
+<h2 class="mb-4">📊 Relatório PECC: Participantes por Ano de Ingresso</h2>
+
+<!-- Filtro por ano -->
+<form method="get" class="form-classe mb-4">
+    <label for="ano"><strong>Selecione o Ano:</strong></label>
+    <select name="ano" id="ano" onchange="this.form.submit()">
+        <option value="">Todos</option>
+        {% for ano in anos_disponiveis %}
+        <option value="{{ ano }}" {% if request.args.get('ano') == ano|string %}selected{% endif %}>{{ ano }}</option>
+        {% endfor %}
+    </select>
+</form>
+
+<hr>
+
+{% if participantes_filtrados %}
+<div style="max-height: 600px; overflow-y: auto; padding-right: 10px;">
+    {% for pessoa in participantes_filtrados %}
+    <div class="d-flex align-items-center border rounded p-3 mb-3 shadow-sm bg-light">
+        <img src="{{ url_for('static', filename='img/avatar.png') }}" alt="avatar" class="me-3" style="width: 60px; height: 60px; object-fit: cover; border-radius: 50%;">
+        <div>
+            <p class="mb-1"><strong>Nome:</strong> {{ pessoa.nome }}</p>
+            <p class="mb-1"><strong>CPF:</strong> {{ pessoa.cpf }}</p>
+            <p class="mb-1"><strong>Cidade:</strong> {{ pessoa.cidade }}</p>
+            <p class="mb-1"><strong>Estado:</strong> {{ pessoa.estado }}</p>
+        </div>
+    </div>
+    {% endfor %}
+</div>
+{% else %}
+<p class="text-muted">Nenhum participante encontrado para o ano selecionado.</p>
+{% endif %}
+
+<!-- Botões -->
+<div class="button-group mt-3">
+    <a href="#" onclick="window.print()" class="btn btn-primary">🖨️ Gerar PDF</a>
+</div>
+
+<a href="{{ url_for('relatorios') }}" class="btn btn-secondary mt-3">⬅ Voltar aos Relatórios</a>
+
+<!-- Rodapé -->
+<footer style="background-color: #f8f9fa; padding: 1.5rem 1rem; text-align: center; font-family: 'Georgia', serif; color: #444; border-top: 1px solid #ddd; margin-top: 3rem;">
+  <p style="font-size: 1rem; font-style: italic; max-width: 600px; margin: 0 auto 0.5rem;">
+    “Dai graças em todas as circunstâncias, pois esta é a vontade de Deus para vocês em Cristo Jesus.”
+  </p>
+  <p style="font-weight: bold; font-size: 0.9rem; color: #2c3e50; margin-bottom: 1rem;">
+    — 1 Tessalonicenses 5:18
+  </p>
+  <p style="font-size: 0.85rem; color: #999; letter-spacing: 1px; margin-top: 1rem;">
+    <span style="font-weight: 700; color: #1a1a1a;">Registrado:</span> Ranyere Lima
+  </p>
+</footer>
+{% endblock %}
