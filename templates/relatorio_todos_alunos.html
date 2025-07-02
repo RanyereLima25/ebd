@@ -5,9 +5,9 @@
 {% block content %}
 
 <!-- 🏛️ Cabeçalho personalizado com logo e slogan -->
-<div class="cabecalho-igreja" style="display: flex; justify-content: space-between; align-items: center;">
+<div class="cabecalho-igreja" style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 10px;">
     <div style="flex: 0 0 auto;">
-        <img src="{{ url_for('static', filename='img/logo.png') }}" alt="Logo da Igreja" style="height: 80px;">
+        <img src="{{ url_for('static', filename='img/logo.png') }}" alt="Logo da Igreja" style="height: 80px; border-radius: 8px;">
     </div>
     <div style="flex: 1; text-align: right;">
         <h2 style="margin: 0;">Igreja Evangélica Assembleia de Deus no Amazonas</h2>
@@ -19,7 +19,7 @@
 </div>
 <hr>
 
-<h2 class="mb-4 titulo-relatorio">
+<h2 class="mb-4 titulo-relatorio" style="margin-bottom: 20px;">
     Relatório: 
     {% if filtro_tipo == 'Aluno' %}
         Alunos por Classe
@@ -33,10 +33,10 @@
 </h2>
 
 <!-- 🔍 Formulário de filtro -->
-<form method="get" class="form-filtros no-print" style="display: flex; gap: 1rem; align-items: center; margin-bottom: 1rem;">
-    <div>
-        <label for="tipo"><strong>Tipo:</strong></label>
-        <select name="tipo" id="tipo" onchange="this.form.submit()" class="form-select">
+<form method="get" class="form-filtros no-print" style="display: flex; gap: 20px; align-items: center; margin-bottom: 25px; flex-wrap: wrap;">
+    <div style="min-width: 150px;">
+        <label for="tipo" style="display: block; font-weight: 600; margin-bottom: 6px;">Tipo:</label>
+        <select name="tipo" id="tipo" onchange="this.form.submit()" class="form-select" style="width: 100%; padding: 6px 8px; border-radius: 6px; border: 1px solid #ccc;">
             <option value="" {% if not filtro_tipo %}selected{% endif %}>Todos</option>
             <option value="Aluno" {% if filtro_tipo == 'Aluno' %}selected{% endif %}>Alunos</option>
             <option value="Professor" {% if filtro_tipo == 'Professor' %}selected{% endif %}>Professores</option>
@@ -44,9 +44,9 @@
         </select>
     </div>
 
-    <div>
-        <label for="classe"><strong>Classe:</strong></label>
-        <select name="classe" id="classe" onchange="this.form.submit()" class="form-select">
+    <div style="min-width: 150px;">
+        <label for="classe" style="display: block; font-weight: 600; margin-bottom: 6px;">Classe:</label>
+        <select name="classe" id="classe" onchange="this.form.submit()" class="form-select" style="width: 100%; padding: 6px 8px; border-radius: 6px; border: 1px solid #ccc;">
             <option value="">Todas as Classes</option>
             {% for classe_nome in dados_por_classe.keys() %}
                 <option value="{{ classe_nome }}" {% if request.args.get('classe') == classe_nome %}selected{% endif %}>
@@ -58,30 +58,30 @@
 </form>
 
 <!-- 🔥 Tabela -->
-<table class="styled-table">
+<table class="styled-table" style="width: 100%; border-collapse: collapse; margin-bottom: 20px; font-size: 0.95rem;">
     <thead>
-        <tr>
-            <th style="width: 25%;">Classe</th>
-            <th style="width: 45%;">Nome</th>
-            <th style="width: 20%;">Data de Nascimento</th>
-            <th style="width: 10%;">Tipo</th>
+        <tr style="background-color: #f9f9f9;">
+            <th style="padding: 12px 15px; border: 1px solid #ddd; text-align: left; width: 25%;">Classe</th>
+            <th style="padding: 12px 15px; border: 1px solid #ddd; text-align: left; width: 45%;">Nome</th>
+            <th style="padding: 12px 15px; border: 1px solid #ddd; text-align: left; width: 20%;">Data de Nascimento</th>
+            <th style="padding: 12px 15px; border: 1px solid #ddd; text-align: left; width: 10%;">Tipo</th>
         </tr>
     </thead>
     <tbody>
         {% for classe, pessoas in dados_por_classe.items() %}
             {% if not request.args.get('classe') or request.args.get('classe') == classe %}
                 {% for pessoa in pessoas %}
-                <tr>
-                    <td>{{ classe }}</td>
-                    <td>{{ pessoa.nome }}</td>
-                    <td>
+                <tr style="border-bottom: 1px solid #eee;">
+                    <td style="padding: 10px 15px; border: 1px solid #ddd;">{{ classe }}</td>
+                    <td style="padding: 10px 15px; border: 1px solid #ddd;">{{ pessoa.nome }}</td>
+                    <td style="padding: 10px 15px; border: 1px solid #ddd;">
                         {% if pessoa.nascimento %}
                             {{ pessoa.nascimento | formatadata }}
                         {% else %}
                             -
                         {% endif %}
                     </td>
-                    <td>{{ pessoa.tipo }}</td>
+                    <td style="padding: 10px 15px; border: 1px solid #ddd;">{{ pessoa.tipo }}</td>
                 </tr>
                 {% endfor %}
             {% endif %}
@@ -91,7 +91,7 @@
 
 <!-- 🎯 Botões -->
 <div class="button-group no-print" style="margin-top: 1rem;">
-    <a href="#" onclick="window.print()" class="btn-action">Gerar PDF</a>
+    <a href="#" onclick="window.print()" class="btn-action" style="padding: 10px 15px; background-color: #4e54c8; color: white; border-radius: 6px; text-decoration: none;">Gerar PDF</a>
 </div>
 <a href="{{ url_for('relatorios') }}" class="btn btn-secondary mt-3">Voltar</a>
 
