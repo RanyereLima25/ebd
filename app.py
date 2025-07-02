@@ -43,6 +43,12 @@ class Pessoa(db.Model):
     bairro = db.Column(db.String(100))
     cidade = db.Column(db.String(100))
     estado = db.Column(db.String(100))
+    escolaridade = db.Column(db.String(100))
+    curso_teologia = db.Column(db.String(100))
+    curso_lider = db.Column(db.String(100))
+    batizado = db.Column(db.String(100))
+    profissao = db.Column(db.String(100))
+
 
 class Usuario(db.Model):
     id = db.Column(db.Integer, primary_key=True)
@@ -154,7 +160,13 @@ def cadastro():
             complemento=dados.get('complemento'),
             bairro=dados.get('bairro'),
             cidade=dados.get('cidade'),
-            estado=dados.get('estado')
+            estado=dados.get('estado'),
+            sexo=dados.get('sexo'),
+            escolaridade=dados.get('escolaridade'),
+            curso_teologia=dados.get('curso_teologia'),
+            curso_lider=dados.get('curso_lider'),
+            batizado=dados.get('batizado'),
+            profissao=dados.get('profissao')
         )
         db.session.add(nova_pessoa)
         db.session.commit()
