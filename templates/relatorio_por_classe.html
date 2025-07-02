@@ -52,7 +52,7 @@
                     <td>{{ aluno.nome }}</td>
                     <td>
                         {% if aluno.nascimento %}
-                            {{ aluno.nascimento.strftime('%d/%m/%Y') }}
+                            {{ aluno.nascimento | formatadata }}
                         {% else %}
                             -
                         {% endif %}
