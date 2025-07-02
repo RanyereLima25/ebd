@@ -1,91 +1,144 @@
-<!-- FOTO -->
-<div class="text-end mb-3">
-    <label for="foto" class="form-label">Foto (opcional)</label>
-    <input type="file" name="foto" id="foto" accept="image/*" class="form-control w-auto d-inline-block">
-</div>
+{% extends 'base.html' %}
 
-<!-- ABA: DADOS PESSOAIS -->
-<div class="card mb-4">
-    <div class="card-header bg-primary text-white">
-        Dados Pessoais
+{% block title %}{{ 'Editar' if pessoa else 'Cadastro' }}{% endblock %}
+
+{% block content %}
+<h2>{{ 'Editar Cadastro' if pessoa else 'Novo Cadastro' }}</h2>
+<p class="text-muted">Usuário logado: <strong>{{ usuario }}</strong></p>
+
+<form method="POST" action="" class="needs-validation" novalidate enctype="multipart/form-data">
+
+    <!-- FOTO -->
+    <div class="text-end mb-3">
+        <label for="foto" class="form-label">Foto (opcional)</label>
+        <input type="file" name="foto" id="foto" accept="image/*" class="form-control w-auto d-inline-block">
     </div>
-    <div class="card-body">
 
-        <!-- Nome, CPF, nascimento, e outros campos anteriores -->
-
-        <!-- Sexo -->
-        <div class="mb-3">
-            <label class="form-label">Sexo</label>
-            <select name="sexo" class="form-select" required>
-                <option value="" disabled selected>Selecione</option>
-                <option value="Masculino" {{ 'selected' if pessoa and pessoa.sexo == 'Masculino' else '' }}>Masculino</option>
-                <option value="Feminino" {{ 'selected' if pessoa and pessoa.sexo == 'Feminino' else '' }}>Feminino</option>
-            </select>
-        </div>
-
-        <!-- Profissão -->
-        <div class="mb-3">
-            <label class="form-label">Profissão</label>
-            <select name="profissao" id="profissao" class="form-select" onchange="mostrarOutroProfissao(this)">
-                <option value="" selected disabled>Selecione</option>
-                <option value="Estudante">Estudante</option>
-                <option value="Professor">Professor</option>
-                <option value="Técnico">Técnico</option>
-                <option value="Administrador">Administrador</option>
-                <option value="Engenheiro">Engenheiro</option>
-                <option value="Advogado">Advogado</option>
-                <option value="Médico">Médico</option>
-                <option value="Enfermeiro">Enfermeiro</option>
-                <option value="Policial">Policial</option>
-                <option value="Juiz">Juiz</option>
-                <option value="Desembargador">Desembargador</option>
-                <option value="Parlamentar">Parlamentar</option>
-                <option value="Autônomo">Autônomo</option>
-                <option value="Outro">Outro</option>
-            </select>
-            <input type="text" name="profissao_outro" id="profissao_outro" class="form-control mt-2" placeholder="Digite sua profissão" style="display: none;">
-        </div>
-
-        <!-- Estado Civil -->
-        <div class="mb-3">
-            <label class="form-label">Estado Civil</label>
-            <select name="estado_civil" class="form-select">
-                <option value="" selected disabled>Selecione</option>
-                <option value="Casado">Casado</option>
-                <option value="Solteiro">Solteiro</option>
-                <option value="Viúvo">Viúvo</option>
-                <option value="Divorciado">Divorciado</option>
-            </select>
-        </div>
-
-        <!-- Escolaridade -->
-        <div class="mb-3">
-            <label class="form-label">Escolaridade</label>
-            <select name="escolaridade" class="form-select">
-                <option value="" selected disabled>Selecione</option>
-                <option value="Fundamental completo">Fundamental completo</option>
-                <option value="Fundamental incompleto">Fundamental incompleto</option>
-                <option value="Médio completo">Médio completo</option>
-                <option value="Médio incompleto">Médio incompleto</option>
-                <option value="Superior completo">Superior completo</option>
-                <option value="Superior incompleto">Superior incompleto</option>
-            </select>
-        </div>
-
-        <!-- Disposição para Obra -->
-        <div class="mb-3">
-            <label class="form-label">Disposição para Obra (selecione os dias e turnos):</label>
-            <div class="form-check">
+    <!-- DADOS PESSOAIS -->
+    <div class="card mb-4">
+        <div class="card-header bg-primary text-white">Dados Pessoais</div>
+        <div class="card-body">
+            <div class="mb-3">
+                <label class="form-label">Nome</label>
+                <input type="text" name="nome" class="form-control" required value="{{ pessoa.nome if pessoa else '' }}">
+                <div class="invalid-feedback">Por favor, informe o nome.</div>
+            </div>
+            <div class="mb-3">
+                <label class="form-label">CPF</label>
+                <input type="text" name="cpf" class="form-control" required value="{{ pessoa.cpf if pessoa else '' }}">
+                <div class="invalid-feedback">Por favor, informe o CPF.</div>
+            </div>
+            <div class="mb-3">
+                <label class="form-label">Data de Nascimento</label>
+                <input type="date" name="nascimento" class="form-control" required value="{{ pessoa.nascimento if pessoa else '' }}">
+                <div class="invalid-feedback">Por favor, informe a data de nascimento.</div>
+            </div>
+            <div class="mb-3">
+                <label class="form-label">Email</label>
+                <input type="email" name="email" class="form-control" required value="{{ pessoa.email if pessoa else '' }}">
+                <div class="invalid-feedback">Por favor, informe um email válido.</div>
+            </div>
+            <div class="mb-3">
+                <label class="form-label">Telefone</label>
+                <input type="text" name="telefone" class="form-control" required value="{{ pessoa.telefone if pessoa else '' }}">
+                <div class="invalid-feedback">Por favor, informe o telefone.</div>
+            </div>
+            <div class="mb-3">
+                <label class="form-label">Sexo</label>
+                <select name="sexo" class="form-select" required>
+                    <option value="" disabled selected>Selecione</option>
+                    <option value="Masculino" {{ 'selected' if pessoa and pessoa.sexo == 'Masculino' else '' }}>Masculino</option>
+                    <option value="Feminino" {{ 'selected' if pessoa and pessoa.sexo == 'Feminino' else '' }}>Feminino</option>
+                </select>
+            </div>
+            <div class="mb-3">
+                <label class="form-label">Profissão</label>
+                <select name="profissao" id="profissao" class="form-select" onchange="mostrarOutroProfissao(this)">
+                    <option value="" selected disabled>Selecione</option>
+                    <option value="Estudante">Estudante</option>
+                    <option value="Professor">Professor</option>
+                    <option value="Técnico">Técnico</option>
+                    <option value="Administrador">Administrador</option>
+                    <option value="Engenheiro">Engenheiro</option>
+                    <option value="Advogado">Advogado</option>
+                    <option value="Médico">Médico</option>
+                    <option value="Enfermeiro">Enfermeiro</option>
+                    <option value="Policial">Policial</option>
+                    <option value="Juiz">Juiz</option>
+                    <option value="Desembargador">Desembargador</option>
+                    <option value="Parlamentar">Parlamentar</option>
+                    <option value="Autônomo">Autônomo</option>
+                    <option value="Outro">Outro</option>
+                </select>
+                <input type="text" name="profissao_outro" id="profissao_outro" class="form-control mt-2" placeholder="Digite sua profissão" style="display: none;">
+            </div>
+            <div class="mb-3">
+                <label class="form-label">Estado Civil</label>
+                <select name="estado_civil" class="form-select">
+                    <option value="" selected disabled>Selecione</option>
+                    <option value="Casado">Casado</option>
+                    <option value="Solteiro">Solteiro</option>
+                    <option value="Viúvo">Viúvo</option>
+                    <option value="Divorciado">Divorciado</option>
+                </select>
+            </div>
+            <div class="mb-3">
+                <label class="form-label">Escolaridade</label>
+                <select name="escolaridade" class="form-select">
+                    <option value="" selected disabled>Selecione</option>
+                    <option value="Fundamental completo">Fundamental completo</option>
+                    <option value="Fundamental incompleto">Fundamental incompleto</option>
+                    <option value="Médio completo">Médio completo</option>
+                    <option value="Médio incompleto">Médio incompleto</option>
+                    <option value="Superior completo">Superior completo</option>
+                    <option value="Superior incompleto">Superior incompleto</option>
+                </select>
+            </div>
+            <div class="mb-3">
+                <label class="form-label">Disposição para Obra</label><br>
                 {% for turno in ['Domingo manhã', 'Domingo tarde', 'Domingo noite', 'Segunda noite', 'Terça noite', 'Quarta noite', 'Quinta noite', 'Sexta noite', 'Sábado tarde', 'Sábado noite'] %}
-                <div class="form-check">
-                    <input class="form-check-input" type="checkbox" name="disponibilidade" value="{{ turno }}" id="{{ turno|replace(' ', '_') }}">
-                    <label class="form-check-label" for="{{ turno|replace(' ', '_') }}">
-                        {{ turno }}
-                    </label>
-                </div>
+                    <div class="form-check form-check-inline">
+                        <input class="form-check-input" type="checkbox" name="disponibilidade" value="{{ turno }}" id="{{ turno|replace(' ', '_') }}">
+                        <label class="form-check-label" for="{{ turno|replace(' ', '_') }}">{{ turno }}</label>
+                    </div>
                 {% endfor %}
             </div>
         </div>
-
     </div>
-</div>
+
+    <!-- OS DEMAIS CAMPOS PERMANECEM COMO ESTAVAM -->
+
+    <!-- BOTÕES -->
+    <button type="submit" class="btn btn-success">Salvar</button>
+    <a href="{{ url_for('visualizar') }}" class="btn btn-secondary">Cancelar</a>
+</form>
+
+<!-- SCRIPT DE VALIDAÇÃO E PROFISSÃO -->
+<script>
+(function () {
+    'use strict'
+    var forms = document.querySelectorAll('.needs-validation')
+    Array.prototype.slice.call(forms)
+        .forEach(function (form) {
+            form.addEventListener('submit', function (event) {
+                if (!form.checkValidity()) {
+                    event.preventDefault()
+                    event.stopPropagation()
+                }
+                form.classList.add('was-validated')
+            }, false)
+        })
+})();
+
+function mostrarOutroProfissao(select) {
+    const outroCampo = document.getElementById("profissao_outro");
+    if (select.value === "Outro") {
+        outroCampo.style.display = "block";
+        outroCampo.required = true;
+    } else {
+        outroCampo.style.display = "none";
+        outroCampo.required = false;
+    }
+}
+</script>
+{% endblock %}
