@@ -25,6 +25,8 @@
         Alunos por Classe
     {% elif filtro_tipo == 'Professor' %}
         Professores por Classe
+    {% elif filtro_tipo == 'Secretario' %}
+        Secretários por Classe
     {% else %}
         Pessoas por Classe
     {% endif %}
@@ -38,6 +40,7 @@
             <option value="" {% if not filtro_tipo %}selected{% endif %}>Todos</option>
             <option value="Aluno" {% if filtro_tipo == 'Aluno' %}selected{% endif %}>Alunos</option>
             <option value="Professor" {% if filtro_tipo == 'Professor' %}selected{% endif %}>Professores</option>
+            <option value="Secretario" {% if filtro_tipo == 'Secretario' %}selected{% endif %}>Secretários</option>
         </select>
     </div>
 
@@ -58,9 +61,10 @@
 <table class="styled-table">
     <thead>
         <tr>
-            <th style="width: 30%;">Classe</th>
-            <th style="width: 50%;">Nome</th>
+            <th style="width: 25%;">Classe</th>
+            <th style="width: 45%;">Nome</th>
             <th style="width: 20%;">Data de Nascimento</th>
+            <th style="width: 10%;">Tipo</th>
         </tr>
     </thead>
     <tbody>
@@ -77,6 +81,7 @@
                             -
                         {% endif %}
                     </td>
+                    <td>{{ pessoa.tipo }}</td>
                 </tr>
                 {% endfor %}
             {% endif %}
