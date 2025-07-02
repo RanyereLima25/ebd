@@ -3,75 +3,94 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>EBD - IEADAM/Área 01</title>
-    <link href="https://fonts.googleapis.com/css2?family=Roboto&display=swap" rel="stylesheet">
+    <title>Login - EBD IEADAM</title>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600&display=swap" rel="stylesheet">
     <style>
         * {
             box-sizing: border-box;
+            margin: 0;
+            padding: 0;
         }
 
         body {
-            margin: 0;
-            padding: 0;
-            font-family: 'Roboto', sans-serif;
-            background: linear-gradient(rgba(0, 0, 0, 0.5), rgba(0, 0, 0, 0.5)),
-                        url('https://www.exemplo.com/imagem-ebd.jpg') no-repeat center center fixed;
-            background-size: cover;
+            font-family: 'Poppins', sans-serif;
+            height: 100vh;
+            background: linear-gradient(135deg, #4e54c8, #8f94fb);
             display: flex;
             justify-content: center;
             align-items: center;
-            height: 100vh;
+            animation: gradient 15s ease infinite;
+        }
+
+        @keyframes gradient {
+            0% { background-position: 0% 50%; }
+            50% { background-position: 100% 50%; }
+            100% { background-position: 0% 50%; }
         }
 
         .login-container {
-            background-color: rgba(255, 255, 255, 0.95);
+            background-color: white;
             padding: 40px 30px;
-            border-radius: 12px;
-            box-shadow: 0 8px 20px rgba(0, 0, 0, 0.3);
-            width: 100%;
+            border-radius: 15px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
             max-width: 400px;
+            width: 100%;
+            text-align: center;
+            animation: fadeIn 1s ease;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(-20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .login-container img {
+            width: 80px;
+            margin-bottom: 15px;
         }
 
         .login-container h2 {
-            margin: 0 0 10px;
             color: #2c3e50;
+            font-weight: 600;
+            margin-bottom: 5px;
         }
 
         .login-container h4 {
-            margin-bottom: 20px;
             color: #7f8c8d;
+            font-weight: 400;
+            margin-bottom: 25px;
         }
 
-        .login-container input[type="text"],
-        .login-container input[type="password"] {
+        .login-container input {
             width: 100%;
             padding: 12px;
             margin: 10px 0;
             border: 1px solid #ccc;
-            border-radius: 6px;
-            font-size: 16px;
+            border-radius: 8px;
+            font-size: 15px;
         }
 
         .login-container button {
             width: 100%;
             padding: 12px;
-            background-color: #2c3e50;
-            color: #fff;
+            background-color: #4e54c8;
+            color: white;
+            font-weight: bold;
             border: none;
-            border-radius: 6px;
-            font-size: 16px;
-            transition: background 0.3s ease;
+            border-radius: 8px;
+            cursor: pointer;
             margin-top: 10px;
+            transition: background 0.3s;
         }
 
         .login-container button:hover {
-            background-color: #1a252f;
+            background-color: #3b40a0;
         }
 
         .login-container a {
             display: block;
             margin-top: 15px;
-            color: #2c3e50;
+            color: #4e54c8;
             text-decoration: none;
             font-size: 14px;
         }
@@ -82,10 +101,10 @@
 
         .login-container ul {
             margin-top: 15px;
-            padding: 0;
             list-style: none;
             color: red;
             font-size: 14px;
+            padding: 0;
         }
 
         @media (max-width: 480px) {
@@ -93,21 +112,16 @@
                 padding: 30px 20px;
                 max-width: 90%;
             }
-
-            .login-container h2 {
-                font-size: 22px;
-            }
-
-            .login-container h4 {
-                font-size: 16px;
-            }
         }
     </style>
 </head>
 <body>
     <div class="login-container">
+        <!-- Ícone de livro ou cruz simples -->
+        <img src="https://cdn-icons-png.flaticon.com/512/3176/3176364.png" alt="EBD" />
+
         <h2>EBD IEADAM</h2>
-        <h4>Área 01</h4>
+        <h4>Área 01 - Professores e Alunos</h4>
 
         <form method="post">
             <input type="text" name="login" placeholder="Login" required>
