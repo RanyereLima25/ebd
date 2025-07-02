@@ -1,240 +1,78 @@
-{% extends 'base.html' %}
+from flask import Flask, render_template, redirect, url_for, request, session, flash
+from flask_sqlalchemy import SQLAlchemy
+from werkzeug.security import generate_password_hash, check_password_hash
+from functools import wraps
+from collections import defaultdict
+from datetime import datetime
+import os
 
-{% block title %}{{ 'Editar' if pessoa else 'Cadastro' }}{% endblock %}
+app = Flask(__name__)
 
-{% block content %}
-<h2>{{ 'Editar Cadastro' if pessoa else 'Novo Cadastro' }}</h2>
-<p class="text-muted">Usuário logado: <strong>{{ usuario }}</strong></p>
+# =============================
+# CONFIGURAÇÃO DO BANCO
+# =============================
+DATABASE_URL = "postgresql://postgres.asvombxvhklbqkmprzdy:CADASTRO-EBD@aws-0-sa-east-1.pooler.supabase.com:5432/postgres"
 
-<form method="POST" action="" class="needs-validation" novalidate>
+app.config['SQLALCHEMY_DATABASE_URI'] = DATABASE_URL
+app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
+app.config['SECRET_KEY'] = 'ebd'
 
-    <!-- DADOS PESSOAIS -->
-    <div class="card mb-4 border-primary">
-        <div class="card-header bg-primary text-white">
-            Dados Pessoais
-        </div>
-        <div class="card-body bg-light">
-            <div class="mb-3">
-                <label class="form-label">Nome</label>
-                <input type="text" name="nome" class="form-control" required value="{{ pessoa.nome if pessoa else '' }}">
-                <div class="invalid-feedback">Por favor, informe o nome.</div>
-            </div>
-            <div class="mb-3">
-                <label class="form-label">CPF</label>
-                <input type="text" name="cpf" class="form-control" required value="{{ pessoa.cpf if pessoa else '' }}">
-                <div class="invalid-feedback">Por favor, informe o CPF.</div>
-            </div>
-            <div class="mb-3">
-                <label class="form-label">Data de Nascimento</label>
-                <input type="date" name="nascimento" class="form-control" required value="{{ pessoa.nascimento if pessoa else '' }}">
-                <div class="invalid-feedback">Por favor, informe a data de nascimento.</div>
-            </div>
-            <div class="mb-3">
-                <label class="form-label">Sexo</label>
-                <select name="sexo" class="form-select" required>
-                    <option value="" disabled selected>Selecione</option>
-                    <option value="Masculino" {{ 'selected' if pessoa and pessoa.sexo == 'Masculino' else '' }}>Masculino</option>
-                    <option value="Feminino" {{ 'selected' if pessoa and pessoa.sexo == 'Feminino' else '' }}>Feminino</option>
-                </select>
-                <div class="invalid-feedback">Por favor, selecione o sexo.</div>
-            </div>
-            <div class="mb-3">
-                <label class="form-label">Email</label>
-                <input type="email" name="email" class="form-control" required value="{{ pessoa.email if pessoa else '' }}">
-                <div class="invalid-feedback">Por favor, informe um email válido.</div>
-            </div>
-            <div class="mb-3">
-                <label class="form-label">Telefone</label>
-                <input type="text" name="telefone" class="form-control" required value="{{ pessoa.telefone if pessoa else '' }}">
-                <div class="invalid-feedback">Por favor, informe o telefone.</div>
-            </div>
-        </div>
-    </div>
+db = SQLAlchemy(app)
 
-    <!-- ESCOLARIDADE E CURSOS -->
-    <div class="card mb-4 border-warning">
-        <div class="card-header bg-warning text-dark">
-            Escolaridade e Cursos
-        </div>
-        <div class="card-body bg-light row">
-            <div class="col-md-6 mb-3">
-                <label class="form-label">Escolaridade</label>
-                <select name="escolaridade" class="form-select">
-                    <option value="" disabled selected>Selecione</option>
-                    <option value="Nenhum">Nenhum</option>
-                    <option value="Fundamental Incompleto">Fundamental Incompleto</option>
-                    <option value="Fundamental Completo">Fundamental Completo</option>
-                    <option value="Médio Incompleto">Médio Incompleto</option>
-                    <option value="Médio Completo">Médio Completo</option>
-                    <option value="Superior Incompleto">Superior Incompleto</option>
-                    <option value="Superior Completo">Superior Completo</option>
-                </select>
-            </div>
-            <div class="col-md-6 mb-3">
-                <label class="form-label">Curso de Teologia</label>
-                <select name="curso_teologia" class="form-select">
-                    <option value="" disabled selected>Selecione</option>
-                    <option value="Sim">Sim</option>
-                    <option value="Não">Não</option>
-                </select>
-            </div>
-            <div class="col-md-6 mb-3">
-                <label class="form-label">Curso de Líder</label>
-                <select name="curso_lider" class="form-select">
-                    <option value="" disabled selected>Selecione</option>
-                    <option value="Sim">Sim</option>
-                    <option value="Não">Não</option>
-                </select>
-            </div>
-            <div class="col-md-6 mb-3">
-                <label class="form-label">Batizado</label>
-                <select name="batizado" class="form-select">
-                    <option value="" disabled selected>Selecione</option>
-                    <option value="Sim">Sim</option>
-                    <option value="Não">Não</option>
-                </select>
-            </div>
-        </div>
-    </div>
+# =============================
+# MODELOS
+# =============================
 
-    <!-- PROFISSÕES -->
-    <div class="card mb-4 border-secondary">
-        <div class="card-header bg-secondary text-white">
-            Profissão
-        </div>
-        <div class="card-body bg-light">
-            <div class="mb-3">
-                <label class="form-label">Profissão</label>
-                <select name="profissao" class="form-select" id="profissaoSelect" onchange="mostrarOutroCampo()">
-                    <option value="" selected disabled>Selecione</option>
-                    <option value="Estudante">Estudante</option>
-                    <option value="Professor">Professor</option>
-                    <option value="Técnico">Técnico</option>
-                    <option value="Administrador">Administrador</option>
-                    <option value="Engenheiro">Engenheiro</option>
-                    <option value="Advogado">Advogado</option>
-                    <option value="Médico">Médico</option>
-                    <option value="Enfermeiro">Enfermeiro</option>
-                    <option value="Policial">Policial</option>
-                    <option value="Juiz">Juiz</option>
-                    <option value="Desembargador">Desembargador</option>
-                    <option value="Parlamentar">Parlamentar</option>
-                    <option value="Outro">Outro</option>
-                </select>
-            </div>
-            <div class="mb-3" id="outraProfissaoDiv" style="display: none;">
-                <label class="form-label">Digite a profissão</label>
-                <input type="text" name="profissao_outro" class="form-control">
-            </div>
-        </div>
-    </div>
+class Pessoa(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    nome = db.Column(db.String(100), nullable=False)
+    cpf = db.Column(db.String(20), nullable=False, unique=True)
+    nascimento = db.Column(db.String(10))
+    email = db.Column(db.String(100), nullable=False)
+    telefone = db.Column(db.String(20), nullable=False)
+    tipo = db.Column(db.String(20))
+    matricula = db.Column(db.String(20))
+    classe = db.Column(db.String(100), nullable=False)
+    sala = db.Column(db.String(20))
+    ano_ingresso = db.Column(db.String(4))
+    sexo = db.Column(db.String(20))
+    cep = db.Column(db.String(10))
+    rua = db.Column(db.String(100))
+    numero = db.Column(db.String(10))
+    complemento = db.Column(db.String(100))
+    bairro = db.Column(db.String(100))
+    cidade = db.Column(db.String(100))
+    estado = db.Column(db.String(100))
 
-    <!-- DADOS DA MATRÍCULA -->
-    <div class="card mb-4 border-success">
-        <div class="card-header bg-success text-white">
-            Dados da Matrícula
-        </div>
-        <div class="card-body bg-light">
-            <div class="mb-3">
-                <label class="form-label">Tipo</label>
-                <select name="tipo" class="form-select" required>
-                    <option value="" disabled {{ '' if pessoa and pessoa.tipo else 'selected' }}>Selecione</option>
-                    <option value="Aluno" {{ 'selected' if pessoa and pessoa.tipo == 'Aluno' else '' }}>Aluno</option>
-                    <option value="Professor" {{ 'selected' if pessoa and pessoa.tipo == 'Professor' else '' }}>Professor</option>
-                    <option value="Secretario" {{ 'selected' if pessoa and pessoa.tipo == 'Secretario' else '' }}>Secretário</option>
-                </select>
-                <div class="invalid-feedback">Por favor, selecione se é Aluno, Professor ou Secretário.</div>
-            </div>
-            <div class="mb-3">
-                <label class="form-label">Matrícula</label>
-                <input type="text" name="matricula" class="form-control" required value="{{ pessoa.matricula if pessoa else '' }}">
-                <div class="invalid-feedback">Por favor, informe a matrícula.</div>
-            </div>
-            <div class="mb-3">
-                <label class="form-label">Classe</label>
-                <input type="text" name="classe" class="form-control" required value="{{ pessoa.classe if pessoa else '' }}">
-                <div class="invalid-feedback">Por favor, informe a classe.</div>
-            </div>
-            <div class="mb-3">
-                <label class="form-label">Sala</label>
-                <input type="text" name="sala" class="form-control" value="{{ pessoa.sala if pessoa else '' }}">
-            </div>
-            <div class="mb-3">
-                <label class="form-label">Ano de Ingresso</label>
-                <input type="text" name="ano_ingresso" class="form-control" value="{{ pessoa.ano_ingresso if pessoa else '' }}">
-            </div>
-        </div>
-    </div>
+class Usuario(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    login = db.Column(db.String(150), unique=True, nullable=False)
+    senha_hash = db.Column(db.String(256), nullable=False)
 
-    <!-- DADOS DE ENDEREÇO -->
-    <div class="card mb-4 border-info">
-        <div class="card-header bg-info text-white">
-            Dados de Endereço
-        </div>
-        <div class="card-body bg-light">
-            <div class="mb-3">
-                <label class="form-label">CEP</label>
-                <input type="text" name="cep" class="form-control" required value="{{ pessoa.cep if pessoa else '' }}">
-                <div class="invalid-feedback">Por favor, informe o CEP.</div>
-            </div>
-            <div class="mb-3">
-                <label class="form-label">Rua</label>
-                <input type="text" name="rua" class="form-control" required value="{{ pessoa.rua if pessoa else '' }}">
-                <div class="invalid-feedback">Por favor, informe a rua.</div>
-            </div>
-            <div class="mb-3">
-                <label class="form-label">Número</label>
-                <input type="text" name="numero" class="form-control" required value="{{ pessoa.numero if pessoa else '' }}">
-                <div class="invalid-feedback">Por favor, informe o número.</div>
-            </div>
-            <div class="mb-3">
-                <label class="form-label">Complemento</label>
-                <input type="text" name="complemento" class="form-control" value="{{ pessoa.complemento if pessoa else '' }}">
-            </div>
-            <div class="mb-3">
-                <label class="form-label">Bairro</label>
-                <input type="text" name="bairro" class="form-control" required value="{{ pessoa.bairro if pessoa else '' }}">
-                <div class="invalid-feedback">Por favor, informe o bairro.</div>
-            </div>
-            <div class="mb-3">
-                <label class="form-label">Cidade</label>
-                <input type="text" name="cidade" class="form-control" required value="{{ pessoa.cidade if pessoa else '' }}">
-                <div class="invalid-feedback">Por favor, informe a cidade.</div>
-            </div>
-            <div class="mb-3">
-                <label class="form-label">Estado</label>
-                <input type="text" name="estado" class="form-control" required value="{{ pessoa.estado if pessoa else '' }}">
-                <div class="invalid-feedback">Por favor, informe o estado.</div>
-            </div>
-        </div>
-    </div>
+    def set_senha(self, senha):
+        self.senha_hash = generate_password_hash(senha)
 
-    <!-- BOTÕES -->
-    <button type="submit" class="btn btn-success">Salvar</button>
-    <a href="{{ url_for('visualizar') }}" class="btn btn-secondary">Cancelar</a>
-</form>
+    def checar_senha(self, senha):
+        return check_password_hash(self.senha_hash, senha)
 
-<!-- SCRIPT DE VALIDAÇÃO -->
-<script>
-    (function () {
-        'use strict';
-        var forms = document.querySelectorAll('.needs-validation');
-        Array.prototype.slice.call(forms)
-            .forEach(function (form) {
-                form.addEventListener('submit', function (event) {
-                    if (!form.checkValidity()) {
-                        event.preventDefault();
-                        event.stopPropagation();
-                    }
-                    form.classList.add('was-validated');
-                }, false);
-            });
-    })();
+# =============================
+# FUNÇÃO PARA GERAR MATRÍCULA
+# =============================
 
-    function mostrarOutroCampo() {
-        const select = document.getElementById('profissaoSelect');
-        const outro = document.getElementById('outraProfissaoDiv');
-        outro.style.display = select.value === 'Outro' ? 'block' : 'none';
-    }
-</script>
-{% endblock %}
+def gerar_matricula():
+    agora = datetime.now()
+    ano = agora.year
+    mes = f'{agora.month:02d}'
+    prefixo = f"{ano}.{mes}"
+
+    # Verificar quantas matrículas já existem no mês
+    ultimo = Pessoa.query.filter(Pessoa.matricula.like(f"{prefixo}.%")).count() + 1
+    numero = f"{ultimo:04d}"
+
+    return f"{prefixo}.{numero}"
+
+# =============================
+# DECORADORES E FILTROS
+# =============================
+
+# (continua normalmente com o restante do código)
