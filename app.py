@@ -214,7 +214,7 @@ def relatorio_todos_alunos():
 
     # Passa para o template os dados e os filtros atuais
     return render_template(
-        'relatorio_por_classe.html',
+        'relatorio-todos-alunos',
         dados_por_classe=dados_por_classe,
         filtro_tipo=tipo,
         filtro_classe=classe
