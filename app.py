@@ -218,7 +218,24 @@ def relatorios():
     usuario_logado = Usuario.query.get(session['usuario_id']).login
     return render_template('relatorios.html', usuario=usuario_logado)
 
-
+@app.route('/relatorio-pecc')
+def relatorio_pecc():
+    ano_selecionado = request.args.get('ano')
+    
+    # Pegando todos os anos únicos de ingresso para o filtro
+    anos_disponiveis = sorted({p.ano_ingresso for p in Pessoa.query.all() if p.ano_ingresso})
+    
+    if ano_selecionado:
+        participantes = Pessoa.query.filter_by(ano_ingresso=ano_selecionado).all()
+    else:
+        participantes = Pessoa.query.all()
+    
+    return render_template(
+        'pecc.html',
+        participantes_filtrados=participantes,
+        anos_disponiveis=anos_disponiveis
+    )
+    
 @app.route('/relatorio_alunos_por_profissao')
 @login_required
 def relatorio_alunos_por_profissao():
