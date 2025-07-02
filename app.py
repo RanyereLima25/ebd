@@ -200,6 +200,28 @@ def relatorios():
     usuario_logado = Usuario.query.get(session['usuario_id']).login
     return render_template('relatorios.html', usuario=usuario_logado)
 
+
+@app.route('/relatorio-profissao')
+@login_required
+def relatorio_profissao():
+    profissao_filtro = request.args.get('profissao')
+
+    # Lista distinta de profissões no banco (para o filtro)
+    profissoes = db.session.query(Pessoa.profissao).distinct().all()
+    profissoes = [p[0] for p in profissoes if p[0]]  # converte de tupla para lista
+
+    if profissao_filtro:
+        alunos_filtrados = Pessoa.query.filter_by(profissao=profissao_filtro).order_by(Pessoa.nome).all()
+    else:
+        alunos_filtrados = Pessoa.query.order_by(Pessoa.nome).all()
+
+    return render_template(
+        'relatorio_profissao.html',
+        alunos_filtrados=alunos_filtrados,
+        profissoes=profissoes
+    )
+
+
 @app.route('/relatorio-por-classe')
 @login_required
 def relatorio_por_classe():
