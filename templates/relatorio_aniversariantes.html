@@ -3,7 +3,7 @@
 {% block title %}Aniversariantes do Mês{% endblock %}
 
 {% block content %}
-<h2 class="mb-4 text-center">🎉 Aniversariantes de {{ agora.strftime('%B') }}</h2>
+<h2 class="mb-4 text-center">🎉 Aniversariantes de {{ agora.strftime('%B') | mes_em_portugues }}</h2>
 <hr>
 
 {% if aniversariantes_por_semana %}
@@ -18,11 +18,16 @@
             {% if alunos %}
               <ul class="list-group list-group-flush">
                 {% for aluno in alunos %}
-                  <li class="list-group-item d-flex justify-content-between align-items-center">
-                    <strong>{{ aluno.nome }}</strong>
-                    <span class="badge bg-secondary">
-                      {{ aluno.nascimento[8:10] }}/{{ aluno.nascimento[5:7] }}
-                    </span>
+                  <li class="list-group-item">
+                    <div class="d-flex justify-content-between align-items-center">
+                      <div>
+                        <strong>{{ aluno.nome }}</strong><br>
+                        <small>Classe {{ aluno.classe }} | Sala: {{ aluno.sala }}</small>
+                      </div>
+                      <span class="badge bg-secondary">
+                        {{ aluno.nascimento[8:10] }}/{{ aluno.nascimento[5:7] }}
+                      </span>
+                    </div>
                   </li>
                 {% endfor %}
               </ul>
