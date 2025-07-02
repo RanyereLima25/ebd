@@ -224,26 +224,46 @@ def relatorio_todos_alunos():
 
 
 
+from datetime import datetime
+from flask import render_template
+from flask_login import login_required
+
 @app.route('/relatorio-aniversariantes')
 @login_required
 def relatorio_aniversariantes():
     hoje = datetime.now()
     pessoas = Pessoa.query.all()
 
-    aniversariantes = []
+    # Estrutura para armazenar aniversariantes por semana
+    aniversariantes_por_semana = {
+        "1": [],  # Dias 1 a 7
+        "2": [],  # Dias 8 a 14
+        "3": [],  # Dias 15 a 21
+        "4": []   # Dias 22 até o final do mês
+    }
+
     for p in pessoas:
         try:
             data = datetime.strptime(p.nascimento, '%Y-%m-%d')
             if data.month == hoje.month:
-                aniversariantes.append((p, data.day))
+                dia = data.day
+                if dia <= 7:
+                    aniversariantes_por_semana["1"].append(p)
+                elif dia <= 14:
+                    aniversariantes_por_semana["2"].append(p)
+                elif dia <= 21:
+                    aniversariantes_por_semana["3"].append(p)
+                else:
+                    aniversariantes_por_semana["4"].append(p)
         except:
-            continue
+            continue  # Ignora caso a data esteja mal formatada ou nula
 
-    # Ordenar pelo dia do mês
-    aniversariantes.sort(key=lambda x: x[1])
-    aniversariantes = [p[0] for p in aniversariantes]
+    return render_template(
+        'relatorio_aniversariantes.html',
+        agora=hoje,
+        aniversariantes_por_semana=aniversariantes_por_semana
+    )
 
-    return render_template('relatorio_aniversariantes.html', aniversariantes=aniversariantes, agora=hoje)
 
 
 @app.route('/relatorio-por-tempo')
