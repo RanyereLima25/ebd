@@ -28,30 +28,45 @@
     // Dados recebidos do Flask
     const labels1 = {{ labels | tojson }};
     const dados1 = {{ valores | tojson }};
+    const generoLabels = {{ genero_labels | tojson }};
+    const generoValores = {{ genero_valores | tojson }};
 
-    // Gênero fixado na ordem correta: Masculino (Azul), Feminino (Rosa), Outros (Amarelo)
-    const labels2 = ['Masculino', 'Feminino', 'Outros'];
-    const mapaGenero = {};
-    {{ genero_labels | tojson }}.forEach((label, idx) => {
-        mapaGenero[label] = {{ genero_valores | tojson }}[idx];
+    // Criar um mapa normalizado para contar corretamente
+    const mapaGenero = {
+        'Masculino': 0,
+        'Feminino': 0,
+        'Outros': 0
+    };
+
+    generoLabels.forEach((genero, i) => {
+        const valor = generoValores[i];
+        const generoNormalizado = genero.trim().toLowerCase();
+
+        if (generoNormalizado === 'masculino') {
+            mapaGenero['Masculino'] += valor;
+        } else if (generoNormalizado === 'feminino') {
+            mapaGenero['Feminino'] += valor;
+        } else {
+            mapaGenero['Outros'] += valor;
+        }
     });
 
+    const labels2 = ['Masculino', 'Feminino', 'Outros'];
     const dados2 = [
-        mapaGenero['Masculino'] || 0,
-        mapaGenero['Feminino'] || 0,
-        mapaGenero['Outros'] || 0
+        mapaGenero['Masculino'],
+        mapaGenero['Feminino'],
+        mapaGenero['Outros']
     ];
 
     const labels3 = ['Janeiro', 'Fevereiro', 'Março', 'Abril', 'Maio'];
     const dados3 = [7.5, 6.8, 8.2, 7.9, 8.5];
 
-    // Cores dinâmicas para o gráfico de barras
     const coresBarra = [
-        '#007bff', '#e83e8c', '#ffc107', '#28a745', '#fd7e14', 
+        '#007bff', '#e83e8c', '#ffc107', '#28a745', '#fd7e14',
         '#6f42c1', '#20c997', '#6610f2', '#17a2b8', '#dc3545'
     ];
 
-    // Gráfico 1: Barras - Alunos por Curso
+    // Gráfico 1: Barras - Alunos por Classe
     const ctx1 = document.getElementById('grafico1').getContext('2d');
     new Chart(ctx1, {
         type: 'bar',
@@ -78,7 +93,7 @@
             datasets: [{
                 label: 'Distribuição por Gênero',
                 data: dados2,
-                backgroundColor: ['#007bff', '#e83e8c', '#ffc107']  // Azul, Rosa, Amarelo
+                backgroundColor: ['#007bff', '#e83e8c', '#ffc107'] // Azul, Rosa, Amarelo
             }]
         },
         options: {
