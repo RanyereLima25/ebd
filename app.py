@@ -166,7 +166,8 @@ def cadastro():
             curso_teologia=dados.get('curso_teologia'),
             curso_lider=dados.get('curso_lider'),
             batizado=dados.get('batizado'),
-            profissao=dados.get('profissao')
+            profissao = dados.get('profissao_outro') or dados.get('profissao')
+
         )
         db.session.add(nova_pessoa)
         db.session.commit()
