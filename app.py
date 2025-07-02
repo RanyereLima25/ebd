@@ -224,27 +224,30 @@ def relatorio_todos_alunos():
 
 
 
-from datetime import datetime
-from flask import render_template
-from flask_login import login_required
-
 @app.route('/relatorio-aniversariantes')
 @login_required
 def relatorio_aniversariantes():
     hoje = datetime.now()
     pessoas = Pessoa.query.all()
 
-    # Estrutura para armazenar aniversariantes por semana
     aniversariantes_por_semana = {
         "1": [],  # Dias 1 a 7
         "2": [],  # Dias 8 a 14
         "3": [],  # Dias 15 a 21
-        "4": []   # Dias 22 até o final do mês
+        "4": []   # Dias 22 em diante
     }
 
     for p in pessoas:
+        nascimento = p.nascimento
+        if not nascimento:
+            continue
+
         try:
-            data = datetime.strptime(p.nascimento, '%Y-%m-%d')
+            # Caso seja string, converte. Caso já seja date, continua.
+            if isinstance(nascimento, str):
+                data = datetime.strptime(nascimento, '%Y-%m-%d')
+            else:
+                data = nascimento  # já é datetime.date
             if data.month == hoje.month:
                 dia = data.day
                 if dia <= 7:
@@ -255,8 +258,9 @@ def relatorio_aniversariantes():
                     aniversariantes_por_semana["3"].append(p)
                 else:
                     aniversariantes_por_semana["4"].append(p)
-        except:
-            continue  # Ignora caso a data esteja mal formatada ou nula
+        except Exception as e:
+            print(f"Erro ao processar nascimento de {p.nome}: {e}")
+            continue
 
     return render_template(
         'relatorio_aniversariantes.html',
