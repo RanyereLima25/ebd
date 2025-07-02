@@ -56,15 +56,16 @@ class Usuario(db.Model):
         return check_password_hash(self.senha_hash, senha)
 
     def gerar_matricula():
-        agora = datetime.now()
-        ano = agora.year
-        mes = f'{agora.month:02d}'
+    from datetime import datetime
+    agora = datetime.now()
+    ano = agora.year
+    mes = f'{agora.month:02d}'
+    prefixo = f"{ano}.{mes}"
 
-    # Conta quantos já foram cadastrados este mês
-        prefixo = f"{ano}.{mes}"
-        ultimo = Pessoa.query.filter(Pessoa.matricula.like(f"{prefixo}.%")).count() + 1
-        numero = f"{ultimo:04d}"
-    
+    # Contar quantas matrículas já existem neste mês
+    ultimo = Pessoa.query.filter(Pessoa.matricula.like(f"{prefixo}.%")).count() + 1
+    numero = f"{ultimo:04d}"
+
     return f"{prefixo}.{numero}"
 # =============================
 # DECORADORES E FILTROS
