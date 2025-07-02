@@ -11,7 +11,9 @@ app = Flask(__name__)
 # =============================
 # CONFIGURAÇÃO DO BANCO
 # =============================
-DATABASE_URL = os.getenv('DATABASE_URL') or 'postgresql://ebd_db_k5jg_user:gr5VUsZ4cS03LAp6jSuYUBDXMWZyxoUh@dpg-d0u8c1c9c44c73aghr0g-a.oregon-postgres.render.com/ebd_db_k5jg'
+#DATABASE_URL = os.getenv('DATABASE_URL') or 'postgresql://ebd_db_k5jg_user:gr5VUsZ4cS03LAp6jSuYUBDXMWZyxoUh@dpg-d0u8c1c9c44c73aghr0g-a.oregon-postgres.render.com/ebd_db_k5jg'
+
+DATABASE_URL = "postgresql://postgres.asvombxvhklbqkmprzdy:[CADASTRO-EBD]@aws-0-sa-east-1.pooler.supabase.com:5432/postgres"
 
 app.config['SQLALCHEMY_DATABASE_URI'] = DATABASE_URL
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
