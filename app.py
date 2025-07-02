@@ -190,35 +190,37 @@ def relatorio_por_classe():
 @app.route('/relatorio-todos-alunos')
 @login_required
 def relatorio_todos_alunos():
-    tipo = request.args.get('tipo')      # 'Aluno', 'Professor' ou None
-    classe = request.args.get('classe')  # nome da classe ou None
+    tipo = request.args.get('tipo')      # filtro tipo: Aluno, Professor, Secretario, ou None para todos
+    classe = request.args.get('classe')  # filtro classe: nome da classe ou None para todas
 
     query = Pessoa.query
 
-    # Filtra por tipo se selecionado
-    if tipo in ['Aluno', 'Professor']:
+    # Filtrar pelo tipo se for um valor válido
+    tipos_validos = ['Aluno', 'Professor', 'Secretario']
+    if tipo and tipo in tipos_validos:
         query = query.filter_by(tipo=tipo)
 
-    # Filtra por classe se selecionado
+    # Filtrar pela classe se selecionada
     if classe:
         query = query.filter_by(classe=classe)
 
-    # Ordena por classe e nome
+    # Ordenar por classe e nome
     pessoas = query.order_by(Pessoa.classe, Pessoa.nome).all()
 
-    # Agrupa pessoas por classe para o template
+    # Agrupar por classe para o template
     dados_por_classe = {}
     for p in pessoas:
         chave_classe = p.classe if p.classe else 'Sem Classe'
         dados_por_classe.setdefault(chave_classe, []).append(p)
 
-    # Passa para o template os dados e os filtros atuais
     return render_template(
-        'relatorio-todos-alunos',
+        'relatorio_todos_alunos.html',
+        pessoas=pessoas,
         dados_por_classe=dados_por_classe,
         filtro_tipo=tipo,
         filtro_classe=classe
     )
+
 
 
 @app.route('/relatorio-aniversariantes')
