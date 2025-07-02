@@ -205,10 +205,23 @@ def relatorio_todos_alunos():
 @login_required
 def relatorio_aniversariantes():
     hoje = datetime.now()
-    aniversariantes = Pessoa.query.filter(
-        db.extract('month', Pessoa.nascimento) == hoje.month
-    ).order_by(db.extract('day', Pessoa.nascimento)).all()
+    pessoas = Pessoa.query.all()
+
+    aniversariantes = []
+    for p in pessoas:
+        try:
+            data = datetime.strptime(p.nascimento, '%Y-%m-%d')
+            if data.month == hoje.month:
+                aniversariantes.append((p, data.day))
+        except:
+            continue
+
+    # Ordenar pelo dia do mês
+    aniversariantes.sort(key=lambda x: x[1])
+    aniversariantes = [p[0] for p in aniversariantes]
+
     return render_template('relatorio_aniversariantes.html', aniversariantes=aniversariantes, agora=hoje)
+
 
 @app.route('/relatorio-por-tempo')
 @login_required
