@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Login - EBD IEADAM</title>
+    <title>Portal da EBD - IEADAM</title>
     <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600&display=swap" rel="stylesheet">
     <style>
         * {
@@ -15,26 +15,26 @@
         body {
             font-family: 'Poppins', sans-serif;
             height: 100vh;
-            background: linear-gradient(135deg, #283e51, #485563);
+            background: linear-gradient(135deg, #4e54c8, #8f94fb);
             background-size: 400% 400%;
-            animation: gradientBG 15s ease infinite;
+            animation: gradient 15s ease infinite;
             display: flex;
             justify-content: center;
             align-items: center;
             padding: 20px;
         }
 
-        @keyframes gradientBG {
+        @keyframes gradient {
             0% { background-position: 0% 50%; }
             50% { background-position: 100% 50%; }
             100% { background-position: 0% 50%; }
         }
 
         .login-container {
-            background-color: rgba(255, 255, 255, 0.96);
+            background-color: white;
             padding: 40px 30px;
             border-radius: 15px;
-            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.25);
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
             max-width: 400px;
             width: 100%;
             text-align: center;
@@ -47,8 +47,8 @@
         }
 
         .login-container img {
-            width: 90px;
-            margin-bottom: 10px;
+            height: 80px;
+            margin-bottom: 15px;
         }
 
         .login-container h2 {
@@ -61,7 +61,6 @@
             color: #7f8c8d;
             font-weight: 400;
             margin-bottom: 25px;
-            font-size: 16px;
         }
 
         .login-container input {
@@ -76,7 +75,7 @@
         .login-container button {
             width: 100%;
             padding: 12px;
-            background-color: #2c3e50;
+            background-color: #4e54c8;
             color: white;
             font-weight: bold;
             border: none;
@@ -87,13 +86,13 @@
         }
 
         .login-container button:hover {
-            background-color: #1c2934;
+            background-color: #3b40a0;
         }
 
         .login-container a {
             display: block;
             margin-top: 15px;
-            color: #2c3e50;
+            color: #4e54c8;
             text-decoration: none;
             font-size: 14px;
         }
@@ -113,15 +112,19 @@
         @media (max-width: 480px) {
             .login-container {
                 padding: 30px 20px;
-                max-width: 100%;
+                max-width: 90%;
+            }
+
+            .login-container img {
+                height: 60px;
             }
         }
     </style>
 </head>
 <body>
     <div class="login-container">
-        <!-- Logo da IEADAM (link atualizado) -->
-        <img src="https://upload.wikimedia.org/wikipedia/commons/thumb/2/2e/IEADAM_logo.png/600px-IEADAM_logo.png" alt="Logo IEADAM">
+        <!-- Logo IEADAM carregada do diretório static -->
+        <img src="{{ url_for('static', filename='img/logo.png') }}" alt="Logo da Igreja" />
 
         <h2>Portal da EBD</h2>
         <h4>Professores e Alunos - Área 01</h4>
