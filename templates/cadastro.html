@@ -54,8 +54,9 @@
                     <option value="" disabled {{ '' if pessoa and pessoa.tipo else 'selected' }}>Selecione</option>
                     <option value="Aluno" {{ 'selected' if pessoa and pessoa.tipo == 'Aluno' else '' }}>Aluno</option>
                     <option value="Professor" {{ 'selected' if pessoa and pessoa.tipo == 'Professor' else '' }}>Professor</option>
+                    <option value="Secretario" {{ 'selected' if pessoa and pessoa.tipo == 'Secretario' else '' }}>Secretário</option>
                 </select>
-                <div class="invalid-feedback">Por favor, selecione se é Aluno ou Professor.</div>
+                <div class="invalid-feedback">Por favor, selecione se é Aluno, Professor ou Secretário.</div>
             </div>
             <div class="mb-3">
                 <label class="form-label">Matrícula</label>
@@ -146,5 +147,3 @@
     })()
 </script>
 {% endblock %}
-<!-- Template cadastro.html -->
-<!-- Template cadastro.html -->
