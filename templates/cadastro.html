@@ -7,6 +7,16 @@
 <p class="text-muted">Usuário logado: <strong>{{ usuario }}</strong></p>
 
 <form method="POST" action="" class="needs-validation" novalidate>
+    
+<div class="d-flex justify-content-between align-items-center mb-3">
+    <h4 class="mb-0">{{ 'Editar Cadastro' if pessoa else 'Novo Cadastro' }}</h4>
+    {% if pessoa %}
+        <span class="badge bg-secondary">Matrícula: {{ pessoa.matricula }}</span>
+    {% else %}
+        <span class="badge bg-info text-dark">Matrícula: será gerada automaticamente</span>
+    {% endif %}
+</div>
+
 
     <!-- DADOS PESSOAIS -->
     <div class="card mb-4 border-primary">
@@ -145,11 +155,7 @@
                 </select>
                 <div class="invalid-feedback">Por favor, selecione se é Aluno, Professor ou Secretário.</div>
             </div>
-            <div class="mb-3">
-                <label class="form-label">Matrícula</label>
-                <input type="text" name="matricula" class="form-control" required value="{{ pessoa.matricula if pessoa else '' }}">
-                <div class="invalid-feedback">Por favor, informe a matrícula.</div>
-            </div>
+            
             <div class="mb-3">
     <label class="form-label">Nº da Classe</label>    
     <select name="classe" class="form-select" required>
