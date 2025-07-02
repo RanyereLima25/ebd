@@ -5,7 +5,7 @@
 {% block content %}
 
 <!-- 🏛️ Cabeçalho personalizado com logo e slogan -->
-<div class="cabecalho-igreja" style="display: flex; justify-content: space-between; align-items: center;">
+<div class="cabecalho-igreja" style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 10px;">
     <div style="flex: 0 0 auto;">
         <img src="{{ url_for('static', filename='img/logo.png') }}" alt="Logo da Igreja" style="height: 80px; border-radius: 12px;">
     </div>
@@ -22,9 +22,9 @@
 <h2 class="mb-4 titulo-relatorio">Relatório: Alunos por Classe</h2>
 
 <!-- 🔍 Filtro por classe (oculta na impressão) -->
-<form method="get" class="form-classe no-print">
+<form method="get" class="form-classe no-print" style="margin-bottom: 20px;">
     <label for="classe"><strong>Selecione a Classe:</strong></label>
-    <select name="classe" id="classe" onchange="this.form.submit()">
+    <select name="classe" id="classe" onchange="this.form.submit()" style="margin-left: 10px; padding: 5px;">
         <option value="">Todas as Classes</option>
         {% for classe_nome in dados_por_classe.keys() %}
             <option value="{{ classe_nome }}" {% if request.args.get('classe') == classe_nome %}selected{% endif %}>
@@ -34,16 +34,16 @@
     </select>
 </form>
 
-<!-- 🔥 Tabela -->
-<table class="styled-table">
+<!-- 🔥 Tabela formatada -->
+<table class="styled-table" style="width: 100%; border-collapse: collapse; margin-bottom: 20px;">
     <thead>
-        <tr>
-            <th>Classe</th>
-            <th>Nome</th>
-            <th>Data de Nascimento</th>
-            <th>Tipo</th>
-            <th>Telefone</th>
-            <th>Sala</th>
+        <tr style="background-color: #f0f0f0;">
+            <th style="padding: 10px; border: 1px solid #ccc;">Classe</th>
+            <th style="padding: 10px; border: 1px solid #ccc;">Nome</th>
+            <th style="padding: 10px; border: 1px solid #ccc;">Nascimento</th>
+            <th style="padding: 10px; border: 1px solid #ccc;">Tipo</th>
+            <th style="padding: 10px; border: 1px solid #ccc;">Telefone</th>
+            <th style="padding: 10px; border: 1px solid #ccc;">Sala</th>
         </tr>
     </thead>
     <tbody>
@@ -51,18 +51,18 @@
             {% if not request.args.get('classe') or request.args.get('classe') == classe %}
                 {% for aluno in alunos %}
                 <tr>
-                    <td>{{ classe }}</td>
-                    <td>{{ aluno.nome }}</td>
-                    <td>
+                    <td style="padding: 8px; border: 1px solid #ddd;">{{ classe }}</td>
+                    <td style="padding: 8px; border: 1px solid #ddd;">{{ aluno.nome }}</td>
+                    <td style="padding: 8px; border: 1px solid #ddd;">
                         {% if aluno.nascimento %}
                             {{ aluno.nascimento | formatadata }}
                         {% else %}
                             -
                         {% endif %}
                     </td>
-                    <td>{{ aluno.tipo or '-' }}</td>
-                    <td>{{ aluno.telefone or '-' }}</td>
-                    <td>{{ aluno.sala or '-' }}</td>
+                    <td style="padding: 8px; border: 1px solid #ddd;">{{ aluno.tipo or '-' }}</td>
+                    <td style="padding: 8px; border: 1px solid #ddd;">{{ aluno.telefone or '-' }}</td>
+                    <td style="padding: 8px; border: 1px solid #ddd;">{{ aluno.sala or '-' }}</td>
                 </tr>
                 {% endfor %}
             {% endif %}
@@ -71,10 +71,10 @@
 </table>
 
 <!-- 🎯 Botões -->
-<div class="button-group no-print">
-    <a href="#" onclick="window.print()" class="btn-action">Gerar PDF</a>
+<div class="button-group no-print" style="margin-top: 20px;">
+    <a href="#" onclick="window.print()" class="btn-action" style="padding: 10px 15px; background-color: #4e54c8; color: white; border-radius: 8px; text-decoration: none;">Gerar PDF</a>
 </div>
-<a href="{{ url_for('relatorios') }}" class="btn btn-secondary">Voltar</a>
+<a href="{{ url_for('relatorios') }}" class="btn btn-secondary" style="margin-top: 10px;">Voltar</a>
 
 <!-- 📜 Rodapé -->
 <footer style="
