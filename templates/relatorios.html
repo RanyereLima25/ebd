@@ -8,25 +8,24 @@
 
 <hr>
 
-<!-- NOVOS RELATÓRIOS -->
-<h4 class="mb-3">Gerador de Relatórios</h4>
+<h4 class="mb-4">Gerador de Relatórios</h4>
 
-<div class="d-grid gap-3">
+<div class="d-flex flex-wrap gap-3">
 
-  <a href="{{ url_for('relatorio_por_classe') }}" class="btn btn-primary btn-lg">
-    📘 Alunos por Classe
+  <a href="{{ url_for('relatorio_por_classe') }}" class="btn btn-outline-primary btn-sm d-flex align-items-center px-3" style="font-weight: 600; font-size: 0.9rem;">
+    <span class="me-2" style="font-size: 1.2rem;">📘</span> Alunos por Classe
   </a>
 
-  <a href="{{ url_for('relatorio_todos_alunos') }}" class="btn btn-success btn-lg">
-    📋 Todos os Alunos
+  <a href="{{ url_for('relatorio_todos_alunos') }}" class="btn btn-outline-success btn-sm d-flex align-items-center px-3" style="font-weight: 600; font-size: 0.9rem;">
+    <span class="me-2" style="font-size: 1.2rem;">📋</span> Todos os Alunos
   </a>
 
-  <a href="{{ url_for('relatorio_aniversariantes') }}" class="btn btn-warning btn-lg text-dark">
-    🎂 Aniversariantes do Mês
+  <a href="{{ url_for('relatorio_aniversariantes') }}" class="btn btn-outline-warning btn-sm d-flex align-items-center px-3 text-dark" style="font-weight: 600; font-size: 0.9rem;">
+    <span class="me-2" style="font-size: 1.2rem;">🎂</span> Aniversariantes do Mês
   </a>
 
-  <a href="{{ url_for('relatorio_por_tempo') }}" class="btn btn-info btn-lg">
-    ⏳ Alunos por Tempo de Ingresso
+  <a href="{{ url_for('relatorio_por_tempo') }}" class="btn btn-outline-info btn-sm d-flex align-items-center px-3" style="font-weight: 600; font-size: 0.9rem;">
+    <span class="me-2" style="font-size: 1.2rem;">⏳</span> Alunos por Tempo
   </a>
 
 </div>
