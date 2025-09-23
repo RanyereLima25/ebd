@@ -5,6 +5,7 @@ from functools import wraps
 from collections import defaultdict
 from datetime import datetime
 import os
+import pytz
 
 app = Flask(__name__)
 
@@ -72,7 +73,8 @@ class Usuario(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     login = db.Column(db.String(150), unique=True, nullable=False)
     senha_hash = db.Column(db.String(256), nullable=False)
-
+    ultimo_login = db.Column(db.DateTime, nullable=True)  # NOVA COLUNA
+    
     def set_senha(self, senha):
         self.senha_hash = generate_password_hash(senha)
 
@@ -125,13 +127,21 @@ def login():
         login_form = request.form['login']
         senha_form = request.form['senha']
         usuario = Usuario.query.filter_by(login=login_form).first()
+        
         if usuario and usuario.checar_senha(senha_form):
+            # timezone de Manaus
+            tz = pytz.timezone("America/Sao_Paulo")
+            usuario.ultimo_login = datetime.now(tz)
+            db.session.commit()
+
             session['usuario_id'] = usuario.id
             flash('Login realizado com sucesso.')
             return redirect(url_for('visualizar'))
         else:
             flash('Login ou senha inválidos.')
     return render_template('login.html')
+
+
 
 @app.route('/logout')
 def logout():
