@@ -9,6 +9,19 @@ import pytz
 
 app = Flask(__name__)
 
+# =============================
+# CONFIGURAÇÃO DO BANCO (PERSISTENTE RENDER)
+# =============================
+db_path = os.path.join("/opt/render/project/data", "cadastro_ebd.db")
+app.config['SQLALCHEMY_DATABASE_URI'] = f"sqlite:///{db_path}"
+app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
+app.config['SECRET_KEY'] = os.environ.get("SECRET_KEY", "ebd-secret-key")
+
+db = SQLAlchemy(app)
+
+# =============================
+# FILTROS DE TEMPLATE
+# =============================
 @app.template_filter('mes_em_portugues')
 def mes_em_portugues(mes_ingles):
     meses = {
@@ -18,15 +31,14 @@ def mes_em_portugues(mes_ingles):
     }
     return meses.get(mes_ingles, mes_ingles)
 
-# =============================
-# CONFIGURAÇÃO DO BANCO
-# =============================
-app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///cadastro_ebd.db'
-app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
-app.config['SECRET_KEY'] = os.environ.get("SECRET_KEY", "ebd-secret-key")
-
-# Cria a instância do banco
-db = SQLAlchemy(app)
+@app.template_filter('formatadata')
+def formatadata(value):
+    if not value:
+        return "-"
+    try:
+        return datetime.strptime(value, '%Y-%m-%d').strftime('%d/%m/%Y')
+    except Exception:
+        return value
 
 # =============================
 # MODELOS
@@ -62,7 +74,7 @@ class Usuario(db.Model):
     login = db.Column(db.String(150), unique=True, nullable=False)
     senha_hash = db.Column(db.String(256), nullable=False)
     ultimo_login = db.Column(db.DateTime, nullable=True)
-    
+
     def set_senha(self, senha):
         self.senha_hash = generate_password_hash(senha)
 
@@ -80,7 +92,7 @@ class Usuario(db.Model):
         return f"{prefixo}.{numero}"
 
 # =============================
-# DECORADORES E FILTROS
+# DECORADORES
 # =============================
 def login_required(f):
     @wraps(f)
@@ -90,15 +102,6 @@ def login_required(f):
             return redirect(url_for('login'))
         return f(*args, **kwargs)
     return decorated_function
-
-@app.template_filter('formatadata')
-def formatadata(value):
-    if not value:
-        return "-"
-    try:
-        return datetime.strptime(value, '%Y-%m-%d').strftime('%d/%m/%Y')
-    except Exception:
-        return value
 
 # =============================
 # ROTAS
@@ -146,9 +149,6 @@ def registrar():
             return redirect(url_for('login'))
     return render_template('registrar.html')
 
-# =============================
-# ROTA DE CADASTRO
-# =============================
 @app.route('/cadastro', methods=['GET', 'POST'])
 @login_required
 def cadastro():
@@ -178,7 +178,7 @@ def cadastro():
             curso_teologia=dados.get('curso_teologia'),
             curso_lider=dados.get('curso_lider'),
             batizado=dados.get('batizado'),
-            profissao = dados.get('profissao_outro') or dados.get('profissao')
+            profissao=dados.get('profissao_outro') or dados.get('profissao')
         )
         db.session.add(nova_pessoa)
         db.session.commit()
@@ -188,9 +188,6 @@ def cadastro():
     usuario_logado = Usuario.query.get(session['usuario_id']).login
     return render_template('cadastro.html', usuario=usuario_logado)
 
-# =============================
-# VISUALIZAÇÃO
-# =============================
 @app.route('/visualizar')
 @login_required
 def visualizar():
@@ -209,6 +206,7 @@ def visualizar():
 # EXECUÇÃO
 # =============================
 if __name__ == '__main__':
+    os.makedirs("/opt/render/project/data", exist_ok=True)  # cria pasta persistente se não existir
     with app.app_context():
-        db.create_all()  # ✅ Cria todas as tabelas automaticamente
-    app.run(debug=True)
+        db.create_all()  # cria tabelas automaticamente
+    app.run(host='0.0.0.0', port=int(os.environ.get("PORT", 5000)), debug=True)
