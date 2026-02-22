@@ -12,10 +12,12 @@ app = Flask(__name__)
 # =============================
 # CONFIGURAÇÃO DO BANCO (PERSISTENTE RENDER)
 # =============================
-db_path = os.path.join("/opt/render/project/data", "cadastro_ebd.db")
-app.config['SQLALCHEMY_DATABASE_URI'] = f"sqlite:///{db_path}"
-app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
-app.config['SECRET_KEY'] = os.environ.get("SECRET_KEY", "ebd-secret-key")
+
+# pasta de dados persistente do Render
+db_path = '/opt/render/project/data/cadastro_ebd.db'
+os.makedirs(os.path.dirname(db_path), exist_ok=True)
+
+app.config['SQLALCHEMY_DATABASE_URI'] = f'sqlite:///{db_path}'
 
 db = SQLAlchemy(app)
 
