@@ -34,22 +34,12 @@ def mes_em_portugues(mes_ingles):
 # CONFIGURAÇÃO DO BANCO
 # =============================
 
-# URL do banco vindo do Render ou local
-DATABASE_URL = os.environ.get("DATABASE_URL")
 
-if not DATABASE_URL:
-    raise RuntimeError("DATABASE_URL não configurada!")
-
-# Corrige prefixo antigo do PostgreSQL
-if DATABASE_URL.startswith("postgres://"):
-    DATABASE_URL = DATABASE_URL.replace("postgres://", "postgresql://", 1)
-
-# Configurações do Flask e SQLAlchemy
-app.config['SQLALCHEMY_DATABASE_URI'] = DATABASE_URL
+app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///cadastro_ebd.db'
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 app.config['SECRET_KEY'] = os.environ.get("SECRET_KEY", "ebd-secret-key")
 
-# CRIA A INSTÂNCIA DO BANCO
+# Cria a instância do banco
 db = SQLAlchemy(app)
 
 
