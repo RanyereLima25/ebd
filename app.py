@@ -39,7 +39,11 @@ if DATABASE_URL.startswith("postgres://"):
     DATABASE_URL = DATABASE_URL.replace("postgres://", "postgresql://", 1)
 
 app.config['SQLALCHEMY_DATABASE_URI'] = DATABASE_URL
+app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
+app.config['SECRET_KEY'] = os.environ.get("SECRET_KEY", "ebd-secret-key")
 
+# 🔥 CRIA A INSTÂNCIA DO BANCO (FALTAVA ISSO)
+db = SQLAlchemy(app)
 # =============================
 # MODELOS
 # =============================
