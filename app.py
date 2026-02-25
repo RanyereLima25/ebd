@@ -2,7 +2,6 @@ from flask import Flask, render_template, redirect, url_for, request, session, f
 from flask_sqlalchemy import SQLAlchemy
 from werkzeug.security import generate_password_hash, check_password_hash
 from functools import wraps
-from collections import defaultdict
 from datetime import datetime
 import os
 import pytz
@@ -18,18 +17,10 @@ app = Flask(__name__)
 @app.template_filter('mes_em_portugues')
 def mes_em_portugues(mes_ingles):
     meses = {
-        'January': 'Janeiro',
-        'February': 'Fevereiro',
-        'March': 'Março',
-        'April': 'Abril',
-        'May': 'Maio',
-        'June': 'Junho',
-        'July': 'Julho',
-        'August': 'Agosto',
-        'September': 'Setembro',
-        'October': 'Outubro',
-        'November': 'Novembro',
-        'December': 'Dezembro'
+        'January': 'Janeiro', 'February': 'Fevereiro', 'March': 'Março',
+        'April': 'Abril', 'May': 'Maio', 'June': 'Junho',
+        'July': 'Julho', 'August': 'Agosto', 'September': 'Setembro',
+        'October': 'Outubro', 'November': 'Novembro', 'December': 'Dezembro'
     }
     return meses.get(mes_ingles, mes_ingles)
 
@@ -45,29 +36,13 @@ def formatadata(value):
 # =============================
 # CONFIGURAÇÃO DO BANCO
 # =============================
-# Use pasta persistente no Render para o SQLite
-#db_path = '/opt/render/project/data/cadastro_ebd.db'
-#os.makedirs(os.path.dirname(db_path), exist_ok=True)
-
-#app.config['SQLALCHEMY_DATABASE_URI'] = f'sqlite:///{db_path}'
-#app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
-#app.config['SECRET_KEY'] = os.environ.get("SECRET_KEY", "ebd-secret-key")
-
-#db = SQLAlchemy(app)
-
-
-# =============================
-# CONFIGURAÇÃO DO BANCO
-# =============================
-
-# Se existir a variável DATABASE_URL no ambiente, usa PostgreSQL (Supabase)
 DATABASE_URL = os.environ.get("DATABASE_URL")
 
 if DATABASE_URL:
-    # Usando Supabase PostgreSQL
+    # Conexão Supabase PostgreSQL
     app.config["SQLALCHEMY_DATABASE_URI"] = DATABASE_URL
 else:
-    # Fallback: pasta persistente no Render para SQLite
+    # Fallback SQLite persistente
     db_path = '/opt/render/project/data/cadastro_ebd.db'
     os.makedirs(os.path.dirname(db_path), exist_ok=True)
     app.config['SQLALCHEMY_DATABASE_URI'] = f'sqlite:///{db_path}'
@@ -186,24 +161,25 @@ def registrar():
             return redirect(url_for('login'))
     return render_template('registrar.html')
 
-# ... (adicione aqui as outras rotas seguindo o mesmo padrão)
+@app.route('/visualizar')
+@login_required
+def visualizar():
+    pessoas = Pessoa.query.order_by(Pessoa.classe, Pessoa.nome).all()
+    usuario_logado = Usuario.query.get(session['usuario_id']).login
+    return render_template('visualizar.html', pessoas=pessoas, total=len(pessoas), usuario=usuario_logado)
 
 # =============================
-# EXECUÇÃO
+# BASE TEMPLATE DEFAULT
 # =============================
-#if __name__ == '__main__':
- #   with app.app_context():
-  #      db.create_all()
-   # app.run(debug=True)
+@app.errorhandler(404)
+def pagina_nao_encontrada(e):
+    return "<h2>Página não encontrada</h2>", 404
 
 # =============================
 # EXECUÇÃO
 # =============================
 if __name__ == "__main__":
     with app.app_context():
-        # Cria todas as tabelas no banco configurado (SQLite ou PostgreSQL)
         db.create_all()
         print("Tabelas verificadas/criadas com sucesso!")
-
-    # Executa o app
     app.run(host="0.0.0.0", port=int(os.environ.get("PORT", 5000)), debug=True)
