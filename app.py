@@ -46,10 +46,32 @@ def formatadata(value):
 # CONFIGURAÇÃO DO BANCO
 # =============================
 # Use pasta persistente no Render para o SQLite
-db_path = '/opt/render/project/data/cadastro_ebd.db'
-os.makedirs(os.path.dirname(db_path), exist_ok=True)
+#db_path = '/opt/render/project/data/cadastro_ebd.db'
+#os.makedirs(os.path.dirname(db_path), exist_ok=True)
 
-app.config['SQLALCHEMY_DATABASE_URI'] = f'sqlite:///{db_path}'
+#app.config['SQLALCHEMY_DATABASE_URI'] = f'sqlite:///{db_path}'
+#app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
+#app.config['SECRET_KEY'] = os.environ.get("SECRET_KEY", "ebd-secret-key")
+
+#db = SQLAlchemy(app)
+
+
+# =============================
+# CONFIGURAÇÃO DO BANCO
+# =============================
+
+# Se existir a variável DATABASE_URL no ambiente, usa PostgreSQL (Supabase)
+DATABASE_URL = os.environ.get("DATABASE_URL")
+
+if DATABASE_URL:
+    # Usando Supabase PostgreSQL
+    app.config["SQLALCHEMY_DATABASE_URI"] = DATABASE_URL
+else:
+    # Fallback: pasta persistente no Render para SQLite
+    db_path = '/opt/render/project/data/cadastro_ebd.db'
+    os.makedirs(os.path.dirname(db_path), exist_ok=True)
+    app.config['SQLALCHEMY_DATABASE_URI'] = f'sqlite:///{db_path}'
+
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 app.config['SECRET_KEY'] = os.environ.get("SECRET_KEY", "ebd-secret-key")
 
@@ -169,7 +191,19 @@ def registrar():
 # =============================
 # EXECUÇÃO
 # =============================
-if __name__ == '__main__':
+#if __name__ == '__main__':
+ #   with app.app_context():
+  #      db.create_all()
+   # app.run(debug=True)
+
+# =============================
+# EXECUÇÃO
+# =============================
+if __name__ == "__main__":
     with app.app_context():
+        # Cria todas as tabelas no banco configurado (SQLite ou PostgreSQL)
         db.create_all()
-    app.run(debug=True)
+        print("Tabelas verificadas/criadas com sucesso!")
+
+    # Executa o app
+    app.run(host="0.0.0.0", port=int(os.environ.get("PORT", 5000)), debug=True)
