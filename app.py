@@ -324,11 +324,42 @@ def relatorio_por_classe():
     dados = db.session.query(
         Pessoa.classe,
         func.count(Pessoa.id)
-    ).filter(Pessoa.tipo == 'Aluno') \
-     .group_by(Pessoa.classe) \
-     .order_by(Pessoa.classe).all()
- return render_template('relatorio_por_classe.html', dados_por_classe=dados
-)
+    ).filter(
+        Pessoa.tipo == 'Aluno'
+    ).group_by(
+        Pessoa.classe
+    ).order_by(
+        Pessoa.classe
+    ).all()
+
+    return render_template(
+        'relatorio_por_classe.html',
+        dados_por_classe=dados
+    )
+
+
+@app.route('/relatorios/por-classe')
+@login_required
+def relatorio_por_classe():
+    alunos = Pessoa.query.filter_by(tipo='Aluno').all()
+
+    dados = {}
+
+    for aluno in alunos:
+        if aluno.classe not in dados:
+            dados[aluno.classe] = []
+        dados[aluno.classe].append(aluno)
+
+    return render_template(
+        'relatorio_por_classe.html',
+        dados=dados
+    )
+
+
+
+
+
+
 
 # 📋 Todos os Alunos
 @app.route('/relatorios/todos-alunos')
