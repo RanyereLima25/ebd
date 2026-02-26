@@ -52,7 +52,7 @@ def formatadata(value):
     try:
         return datetime.strptime(value, '%Y-%m-%d').strftime('%d/%m/%Y')
     except:
-        return value
+        return value 
 
 # =====================================================
 # MODELOS
@@ -337,8 +337,7 @@ def relatorio_todos_alunos():
     alunos = Pessoa.query.filter_by(tipo='Aluno') \
         .order_by(Pessoa.nome).all()
 
-    return render_template('relatorio_todos_alunos.html', alunos=alunos)
-
+    return render_template('relatorio_todos_alunos.html', dados_por_classe=alunos)
 
 # 🎂 Aniversariantes do Mês
 @app.route('/relatorios/aniversariantes')
