@@ -65,7 +65,25 @@ class Pessoa(db.Model):
     email = db.Column(db.String(100), nullable=False)
     telefone = db.Column(db.String(20), nullable=False)
     tipo = db.Column(db.String(20))
-    matricula = db.Column(db.String(20))
+    # matricula = db.Column(db.String(20))
+    matricula = db.Column(db.String(20), unique=True)
+    @staticmethod
+    def gerar_matricula():
+        ano_atual = datetime.now().year
+
+        # Buscar última matrícula do ano atual
+        ultima = Pessoa.query.filter(
+            Pessoa.matricula.like(f"EBD-{ano_atual}-%")
+        ).order_by(Pessoa.id.desc()).first()
+
+        if ultima:
+            ultimo_numero = int(ultima.matricula.split("-")[-1])
+            novo_numero = ultimo_numero + 1
+        else:
+            novo_numero = 1
+
+        return f"EBD-{ano_atual}-{novo_numero:04d}"
+        
     classe = db.Column(db.String(100), nullable=False)
     sala = db.Column(db.String(20))
     ano_ingresso = db.Column(db.String(4))
@@ -182,7 +200,8 @@ def cadastro():
             email=dados.get('email'),
             telefone=dados.get('telefone'),
             tipo=dados.get('tipo'),
-            matricula=Usuario.gerar_matricula(),
+            #matricula=Usuario.gerar_matricula(),
+            matricula=Pessoa.gerar_matricula(),
             classe=dados.get('classe'),
             sala=dados.get('sala'),
             ano_ingresso=dados.get('ano_ingresso'),
