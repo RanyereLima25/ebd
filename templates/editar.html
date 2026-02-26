@@ -3,38 +3,85 @@
 {% block title %}Editar Cadastro{% endblock %}
 
 {% block content %}
-<h2 class="mb-4">Editar Cadastro</h2>
+<div class="container mt-4">
+    <div class="card shadow">
+        <div class="card-header bg-primary text-white">
+            <h4 class="mb-0">Editar Cadastro</h4>
+        </div>
 
-<form method="POST" action="{{ url_for('editar', pessoa_id=pessoa.id) }}">
-    <div class="mb-3">
-        <label class="form-label">Nome</label>
-        <input type="text" class="form-control" name="nome" value="{{ pessoa.nome }}" required>
-    </div>
-    <div class="mb-3">
-        <label class="form-label">CPF</label>
-        <input type="text" class="form-control" name="cpf" value="{{ pessoa.cpf }}" required>
-    </div>
-    <div class="mb-3">
-        <label class="form-label">Classe (Curso)</label>
-        <input type="text" class="form-control" name="classe" value="{{ pessoa.classe }}" required>
-    </div>
-    <div class="mb-3">
-        <label class="form-label">Email</label>
-        <input type="email" class="form-control" name="email" value="{{ pessoa.email }}" required>
-    </div>
-    <div class="mb-3">
-        <label class="form-label">Telefone</label>
-        <input type="text" class="form-control" name="telefone" value="{{ pessoa.telefone }}" required>
-    </div>
-    <div class="mb-3">
-        <label class="form-label">Tipo</label>
-        <select class="form-select" name="tipo" required>
-            <option value="Aluno" {% if pessoa.tipo == 'Aluno' %}selected{% endif %}>Aluno</option>
-            <option value="Professor" {% if pessoa.tipo == 'Professor' %}selected{% endif %}>Professor</option>
-        </select>
-    </div>
+        <div class="card-body">
+            <form method="POST" action="{{ url_for('editar', pessoa_id=pessoa.id) }}">
+                
+                <div class="row">
+                    <!-- Nome -->
+                    <div class="col-md-6 mb-3">
+                        <label class="form-label fw-bold">Nome Completo</label>
+                        <input type="text" class="form-control" name="nome"
+                               value="{{ pessoa.nome }}" required>
+                    </div>
 
-    <button type="submit" class="btn btn-success">Salvar Alterações</button>
-    <a href="{{ url_for('visualizar') }}" class="btn btn-secondary">Cancelar</a>
-</form>
+                    <!-- CPF -->
+                    <div class="col-md-6 mb-3">
+                        <label class="form-label fw-bold">CPF</label>
+                        <input type="text" class="form-control" name="cpf"
+                               value="{{ pessoa.cpf }}" 
+                               placeholder="000.000.000-00"
+                               maxlength="14"
+                               required>
+                    </div>
+                </div>
+
+                <div class="row">
+                    <!-- Classe -->
+                    <div class="col-md-6 mb-3">
+                        <label class="form-label fw-bold">Classe (Curso)</label>
+                        <input type="text" class="form-control" name="classe"
+                               value="{{ pessoa.classe }}" required>
+                    </div>
+
+                    <!-- Tipo -->
+                    <div class="col-md-6 mb-3">
+                        <label class="form-label fw-bold">Tipo</label>
+                        <select class="form-select" name="tipo" required>
+                            <option value="Aluno" {% if pessoa.tipo == 'Aluno' %}selected{% endif %}>Aluno</option>
+                            <option value="Professor" {% if pessoa.tipo == 'Professor' %}selected{% endif %}>Professor</option>
+                        </select>
+                    </div>
+                </div>
+
+                <div class="row">
+                    <!-- Email -->
+                    <div class="col-md-6 mb-3">
+                        <label class="form-label fw-bold">Email</label>
+                        <input type="email" class="form-control" name="email"
+                               value="{{ pessoa.email }}" required>
+                    </div>
+
+                    <!-- Telefone -->
+                    <div class="col-md-6 mb-3">
+                        <label class="form-label fw-bold">Telefone</label>
+                        <input type="text" class="form-control" name="telefone"
+                               value="{{ pessoa.telefone }}"
+                               placeholder="(92) 99999-9999"
+                               maxlength="15"
+                               required>
+                    </div>
+                </div>
+
+                <hr>
+
+                <div class="d-flex justify-content-between">
+                    <a href="{{ url_for('visualizar') }}" class="btn btn-secondary">
+                        Cancelar
+                    </a>
+
+                    <button type="submit" class="btn btn-success">
+                        Salvar Alterações
+                    </button>
+                </div>
+
+            </form>
+        </div>
+    </div>
+</div>
 {% endblock %}
