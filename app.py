@@ -280,7 +280,7 @@ def editar(pessoa_id):
 
 # ================= EXCLUIR =================
 
-@app.route('/excluir/<int:pessoa_id>')
+@app.route('/excluir/<int:pessoa_id>', methods=['POST'])
 @login_required
 def excluir(pessoa_id):
     pessoa = Pessoa.query.get_or_404(pessoa_id)
