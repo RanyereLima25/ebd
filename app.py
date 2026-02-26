@@ -8,16 +8,31 @@ import pytz
 
 app = Flask(__name__)
 
-# =============================
-# CONTEXT PROCESSOR (RESOLVE AGORA NO BASE.HTML)
-# =============================
+# =====================================================
+# CONFIGURAÇÕES
+# =====================================================
+app.config['SECRET_KEY'] = os.environ.get("SECRET_KEY", "ebd-secret-key")
+app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
+
+DATABASE_URL = os.environ.get("DATABASE_URL")
+
+if DATABASE_URL:
+    app.config["SQLALCHEMY_DATABASE_URI"] = DATABASE_URL
+else:
+    app.config["SQLALCHEMY_DATABASE_URI"] = "sqlite:///cadastro_ebd.db"
+
+db = SQLAlchemy(app)
+
+# =====================================================
+# CONTEXT PROCESSOR (resolve {{ agora.year }})
+# =====================================================
 @app.context_processor
 def inject_now():
     return {'agora': datetime.now()}
 
-# =============================
+# =====================================================
 # FILTROS
-# =============================
+# =====================================================
 @app.template_filter('mes_em_portugues')
 def mes_em_portugues(mes_ingles):
     meses = {
@@ -37,25 +52,9 @@ def formatadata(value):
     except:
         return value
 
-# =============================
-# BANCO
-# =============================
-DATABASE_URL = os.environ.get("DATABASE_URL")
-
-if DATABASE_URL:
-    app.config["SQLALCHEMY_DATABASE_URI"] = DATABASE_URL
-else:
-    db_path = 'cadastro_ebd.db'
-    app.config['SQLALCHEMY_DATABASE_URI'] = f'sqlite:///{db_path}'
-
-app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
-app.config['SECRET_KEY'] = os.environ.get("SECRET_KEY", "ebd-secret-key")
-
-db = SQLAlchemy(app)
-
-# =============================
+# =====================================================
 # MODELOS
-# =============================
+# =====================================================
 class Pessoa(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     nome = db.Column(db.String(100), nullable=False)
@@ -79,90 +78,108 @@ class Usuario(db.Model):
     def checar_senha(self, senha):
         return check_password_hash(self.senha_hash, senha)
 
-# =============================
-# LOGIN REQUIRED
-# =============================
+# =====================================================
+# DECORADOR LOGIN REQUIRED
+# =====================================================
 def login_required(f):
     @wraps(f)
-    def decorated(*args, **kwargs):
+    def decorated_function(*args, **kwargs):
         if 'usuario_id' not in session:
-            flash('Você precisa estar logado.')
+            flash("Você precisa estar logado.")
             return redirect(url_for('login'))
         return f(*args, **kwargs)
-    return decorated
+    return decorated_function
 
-# =============================
+# =====================================================
 # ROTAS
-# =============================
+# =====================================================
+
 @app.route('/')
 def index():
     return redirect(url_for('login'))
 
+# ---------------- LOGIN ----------------
 @app.route('/login', methods=['GET', 'POST'])
 def login():
     if request.method == 'POST':
-        usuario = Usuario.query.filter_by(login=request.form['login']).first()
-        if usuario and usuario.checar_senha(request.form['senha']):
+        login_form = request.form.get('login')
+        senha_form = request.form.get('senha')
+
+        usuario = Usuario.query.filter_by(login=login_form).first()
+
+        if usuario and usuario.checar_senha(senha_form):
             tz = pytz.timezone("America/Sao_Paulo")
             usuario.ultimo_login = datetime.now(tz)
             db.session.commit()
+
             session['usuario_id'] = usuario.id
+            flash("Login realizado com sucesso.")
             return redirect(url_for('visualizar'))
-        flash('Login inválido.')
+        else:
+            flash("Login ou senha inválidos.")
+
     return render_template('login.html')
 
+# ---------------- LOGOUT ----------------
 @app.route('/logout')
+@login_required
 def logout():
     session.clear()
+    flash("Você saiu do sistema.")
     return redirect(url_for('login'))
 
+# ---------------- CADASTRO DE USUÁRIO ----------------
 @app.route('/registrar', methods=['GET', 'POST'])
+@login_required
 def registrar():
     if request.method == 'POST':
-        if Usuario.query.filter_by(login=request.form['login']).first():
-            flash('Usuário já existe.')
+        login_form = request.form.get('login')
+        senha_form = request.form.get('senha')
+
+        if Usuario.query.filter_by(login=login_form).first():
+            flash("Usuário já existe.")
         else:
-            novo = Usuario(login=request.form['login'])
-            novo.set_senha(request.form['senha'])
+            novo = Usuario(login=login_form)
+            novo.set_senha(senha_form)
             db.session.add(novo)
             db.session.commit()
-            flash('Usuário criado.')
-            return redirect(url_for('login'))
+            flash("Usuário criado com sucesso.")
+
     return render_template('registrar.html')
 
+# ---------------- VISUALIZAR ----------------
 @app.route('/visualizar')
 @login_required
 def visualizar():
     pessoas = Pessoa.query.order_by(Pessoa.classe, Pessoa.nome).all()
-    return render_template('visualizar.html', pessoas=pessoas)
+    return render_template('visualizar.html', pessoas=pessoas, total=len(pessoas))
 
-# =============================
-# ROTAS QUE ESTAVAM QUEBRANDO
-# =============================
+# ---------------- RELATÓRIOS ----------------
 @app.route('/relatorios')
 @login_required
 def relatorios():
     total = Pessoa.query.count()
     return render_template('relatorios.html', total=total)
 
+# ---------------- GRÁFICOS ----------------
 @app.route('/graficos')
 @login_required
 def graficos():
     total = Pessoa.query.count()
     return render_template('graficos.html', total=total)
 
-# =============================
+# =====================================================
 # ERRO 404
-# =============================
+# =====================================================
 @app.errorhandler(404)
 def pagina_nao_encontrada(e):
     return "<h2>Página não encontrada</h2>", 404
 
-# =============================
-# EXECUÇÃO
-# =============================
+# =====================================================
+# INICIALIZAÇÃO
+# =====================================================
 if __name__ == "__main__":
     with app.app_context():
         db.create_all()
-        print("Banco pronto!")
+        print("Banco verificado/criado com sucesso!")
     app.run(host="0.0.0.0", port=int(os.environ.get("PORT", 5000)), debug=True)
