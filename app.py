@@ -115,17 +115,20 @@ def login_required(f):
 def index():
     return redirect(url_for('login'))
 
+# ================= LOGIN =================
 @app.route('/login', methods=['GET', 'POST'])
 def login():
     if request.method == 'POST':
-        login_form = request.form['login']
-        senha_form = request.form['senha']
+        login_form = request.form.get('login')
+        senha_form = request.form.get('senha')
+
         usuario = Usuario.query.filter_by(login=login_form).first()
 
         if usuario and usuario.checar_senha(senha_form):
             tz = pytz.timezone("America/Sao_Paulo")
             usuario.ultimo_login = datetime.now(tz)
             db.session.commit()
+
             session['usuario_id'] = usuario.id
             flash('Login realizado com sucesso.')
             return redirect(url_for('visualizar'))
@@ -134,17 +137,23 @@ def login():
 
     return render_template('login.html')
 
+
+# ================= LOGOUT =================
 @app.route('/logout')
+@login_required
 def logout():
     session.pop('usuario_id', None)
     flash('Você saiu do sistema.')
     return redirect(url_for('login'))
 
+
+# ================= REGISTRAR USUÁRIO =================
 @app.route('/registrar', methods=['GET', 'POST'])
+@login_required
 def registrar():
     if request.method == 'POST':
-        login_form = request.form['login']
-        senha_form = request.form['senha']
+        login_form = request.form.get('login')
+        senha_form = request.form.get('senha')
 
         if Usuario.query.filter_by(login=login_form).first():
             flash('Usuário já existe.')
@@ -154,10 +163,11 @@ def registrar():
             db.session.add(novo_usuario)
             db.session.commit()
             flash('Usuário registrado com sucesso.')
-            return redirect(url_for('login'))
 
     return render_template('registrar.html')
 
+
+# ================= CADASTRO DE PESSOA =================
 @app.route('/cadastro', methods=['GET', 'POST'])
 @login_required
 def cadastro():
@@ -198,13 +208,35 @@ def cadastro():
     usuario_logado = Usuario.query.get(session['usuario_id']).login
     return render_template('cadastro.html', usuario=usuario_logado)
 
+
+# ================= VISUALIZAR =================
 @app.route('/visualizar')
 @login_required
 def visualizar():
     pessoas = Pessoa.query.order_by(Pessoa.classe, Pessoa.nome).all()
     usuario_logado = Usuario.query.get(session['usuario_id']).login
-    return render_template('visualizar.html', pessoas=pessoas, total=len(pessoas), usuario=usuario_logado)
+    return render_template(
+        'visualizar.html',
+        pessoas=pessoas,
+        total=len(pessoas),
+        usuario=usuario_logado
+    )
 
+
+# ================= RELATÓRIOS =================
+@app.route('/relatorios')
+@login_required
+def relatorios():
+    total = Pessoa.query.count()
+    return render_template('relatorios.html', total=total)
+
+
+# ================= GRÁFICOS =================
+@app.route('/graficos')
+@login_required
+def graficos():
+    total = Pessoa.query.count()
+    return render_template('graficos.html', total=total)
 
 # =====================================================
 # ERRO 404
