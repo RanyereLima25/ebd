@@ -1,13 +1,29 @@
 <tr>
     <td>{{ pessoa.nome }}</td>
-    <td>{{ pessoa.matricula }}</td>  <!-- NOVA CÉLULA -->
+    <td>{{ pessoa.matricula }}</td>
     <td>{{ pessoa.cpf }}</td>
     <td>{{ pessoa.classe }}</td>
     <td>{{ pessoa.email }}</td>
     <td>{{ pessoa.telefone }}</td>
     <td>{{ pessoa.tipo }}</td>
     <td class="text-center">
-        <a href="{{ url_for('editar', pessoa_id=pessoa.id) }}" class="btn btn-sm btn-warning">Editar</a>
-        <a href="{{ url_for('excluir', pessoa_id=pessoa.id) }}" class="btn btn-sm btn-danger" onclick="return confirm('Deseja realmente excluir este cadastro?')">Excluir</a>
+
+        <!-- BOTÃO EDITAR -->
+        <a href="{{ url_for('editar', pessoa_id=pessoa.id) }}"
+           class="btn btn-sm btn-warning">
+           Editar
+        </a>
+
+        <!-- FORM EXCLUIR (POST - CORRETO) -->
+        <form action="{{ url_for('excluir', pessoa_id=pessoa.id) }}"
+              method="POST"
+              style="display:inline;"
+              onsubmit="return confirm('Deseja realmente excluir este cadastro?')">
+
+            <button type="submit" class="btn btn-sm btn-danger">
+                Excluir
+            </button>
+        </form>
+
     </td>
 </tr>
