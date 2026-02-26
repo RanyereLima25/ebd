@@ -321,8 +321,25 @@ def relatorio_pecc():
 @app.route('/graficos')
 @login_required
 def graficos():
+     # Total geral
     total = Pessoa.query.count()
-    return render_template('graficos.html', total=total)
+
+    # 📊 Gráfico 1 - Alunos por Classe
+    resultado = db.session.query(
+        Pessoa.classe,
+        func.count(Pessoa.id)
+    ).filter(Pessoa.tipo == 'Aluno') \
+     .group_by(Pessoa.classe).all()
+
+    labels = [r[0] or "Não informada" for r in resultado]
+    valores = [r[1] for r in resultado]
+
+    return render_template(
+        'graficos.html',
+        total=total,
+        labels=labels,
+        valores=valores
+    )
 
 # =====================================================
 # ERRO 404
