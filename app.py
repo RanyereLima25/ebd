@@ -229,6 +229,57 @@ def cadastro():
     return render_template('cadastro.html', usuario=usuario_logado)
 
 
+
+# =====================================================
+# EDITAR PESSOA
+# =====================================================
+
+@app.route('/editar/<int:pessoa_id>', methods=['GET', 'POST'])
+@login_required
+def editar(pessoa_id):
+    pessoa = Pessoa.query.get_or_404(pessoa_id)
+
+    if request.method == 'POST':
+        dados = request.form.to_dict()
+
+        pessoa.nome = dados.get('nome')
+        pessoa.cpf = dados.get('cpf')
+        pessoa.nascimento = dados.get('nascimento') or None
+        pessoa.email = dados.get('email')
+        pessoa.telefone = dados.get('telefone')
+        pessoa.tipo = dados.get('tipo')
+        pessoa.classe = dados.get('classe')
+        pessoa.sala = dados.get('sala')
+        pessoa.ano_ingresso = dados.get('ano_ingresso')
+        pessoa.cep = dados.get('cep')
+        pessoa.rua = dados.get('rua')
+        pessoa.numero = dados.get('numero')
+        pessoa.complemento = dados.get('complemento')
+        pessoa.bairro = dados.get('bairro')
+        pessoa.cidade = dados.get('cidade')
+        pessoa.estado = dados.get('estado')
+        pessoa.sexo = dados.get('sexo')
+        pessoa.escolaridade = dados.get('escolaridade')
+        pessoa.curso_teologia = dados.get('curso_teologia')
+        pessoa.curso_lider = dados.get('curso_lider')
+        pessoa.batizado = dados.get('batizado')
+        pessoa.profissao = dados.get('profissao_outro') or dados.get('profissao')
+
+        db.session.commit()
+        flash('Cadastro atualizado com sucesso.')
+        return redirect(url_for('visualizar'))
+
+    usuario_logado = Usuario.query.get(session['usuario_id']).login
+
+    return render_template(
+        'cadastro.html',  # reutiliza o mesmo formulário
+        pessoa=pessoa,
+        usuario=usuario_logado,
+        modo_edicao=True
+    )
+
+
+
 # ================= VISUALIZAR =================
 @app.route('/visualizar')
 @login_required
