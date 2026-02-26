@@ -6,13 +6,17 @@ from datetime import datetime
 import os
 import pytz
 
-# =============================
-# CONFIGURAÇÃO DO APP
-# =============================
 app = Flask(__name__)
 
 # =============================
-# FILTROS DE TEMPLATE
+# CONTEXT PROCESSOR (RESOLVE AGORA NO BASE.HTML)
+# =============================
+@app.context_processor
+def inject_now():
+    return {'agora': datetime.now()}
+
+# =============================
+# FILTROS
 # =============================
 @app.template_filter('mes_em_portugues')
 def mes_em_portugues(mes_ingles):
@@ -30,21 +34,18 @@ def formatadata(value):
         return "-"
     try:
         return datetime.strptime(value, '%Y-%m-%d').strftime('%d/%m/%Y')
-    except Exception:
+    except:
         return value
 
 # =============================
-# CONFIGURAÇÃO DO BANCO
+# BANCO
 # =============================
 DATABASE_URL = os.environ.get("DATABASE_URL")
 
 if DATABASE_URL:
-    # Conexão Supabase PostgreSQL
     app.config["SQLALCHEMY_DATABASE_URI"] = DATABASE_URL
 else:
-    # Fallback SQLite persistente
-    db_path = '/opt/render/project/data/cadastro_ebd.db'
-    os.makedirs(os.path.dirname(db_path), exist_ok=True)
+    db_path = 'cadastro_ebd.db'
     app.config['SQLALCHEMY_DATABASE_URI'] = f'sqlite:///{db_path}'
 
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
@@ -65,27 +66,12 @@ class Pessoa(db.Model):
     tipo = db.Column(db.String(20))
     matricula = db.Column(db.String(20))
     classe = db.Column(db.String(100), nullable=False)
-    sala = db.Column(db.String(20))
-    ano_ingresso = db.Column(db.String(4))
-    sexo = db.Column(db.String(20))
-    cep = db.Column(db.String(10))
-    rua = db.Column(db.String(100))
-    numero = db.Column(db.String(10))
-    complemento = db.Column(db.String(100))
-    bairro = db.Column(db.String(100))
-    cidade = db.Column(db.String(100))
-    estado = db.Column(db.String(100))
-    escolaridade = db.Column(db.String(100))
-    curso_teologia = db.Column(db.String(100))
-    curso_lider = db.Column(db.String(100))
-    batizado = db.Column(db.String(100))
-    profissao = db.Column(db.String(100))
 
 class Usuario(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     login = db.Column(db.String(150), unique=True, nullable=False)
     senha_hash = db.Column(db.String(256), nullable=False)
-    ultimo_login = db.Column(db.DateTime, nullable=True)
+    ultimo_login = db.Column(db.DateTime)
 
     def set_senha(self, senha):
         self.senha_hash = generate_password_hash(senha)
@@ -93,27 +79,17 @@ class Usuario(db.Model):
     def checar_senha(self, senha):
         return check_password_hash(self.senha_hash, senha)
 
-    @staticmethod
-    def gerar_matricula():
-        agora = datetime.now()
-        ano = agora.year
-        mes = f'{agora.month:02d}'
-        prefixo = f"{ano}.{mes}"
-        ultimo = Pessoa.query.filter(Pessoa.matricula.like(f"{prefixo}.%")).count() + 1
-        numero = f"{ultimo:04d}"
-        return f"{prefixo}.{numero}"
-
 # =============================
-# DECORADORES
+# LOGIN REQUIRED
 # =============================
 def login_required(f):
     @wraps(f)
-    def decorated_function(*args, **kwargs):
+    def decorated(*args, **kwargs):
         if 'usuario_id' not in session:
-            flash('Você precisa estar logado para acessar esta página.')
+            flash('Você precisa estar logado.')
             return redirect(url_for('login'))
         return f(*args, **kwargs)
-    return decorated_function
+    return decorated
 
 # =============================
 # ROTAS
@@ -125,39 +101,32 @@ def index():
 @app.route('/login', methods=['GET', 'POST'])
 def login():
     if request.method == 'POST':
-        login_form = request.form['login']
-        senha_form = request.form['senha']
-        usuario = Usuario.query.filter_by(login=login_form).first()
-        if usuario and usuario.checar_senha(senha_form):
+        usuario = Usuario.query.filter_by(login=request.form['login']).first()
+        if usuario and usuario.checar_senha(request.form['senha']):
             tz = pytz.timezone("America/Sao_Paulo")
             usuario.ultimo_login = datetime.now(tz)
             db.session.commit()
             session['usuario_id'] = usuario.id
-            flash('Login realizado com sucesso.')
             return redirect(url_for('visualizar'))
-        else:
-            flash('Login ou senha inválidos.')
+        flash('Login inválido.')
     return render_template('login.html')
 
 @app.route('/logout')
 def logout():
-    session.pop('usuario_id', None)
-    flash('Você saiu do sistema.')
+    session.clear()
     return redirect(url_for('login'))
 
 @app.route('/registrar', methods=['GET', 'POST'])
 def registrar():
     if request.method == 'POST':
-        login_form = request.form['login']
-        senha_form = request.form['senha']
-        if Usuario.query.filter_by(login=login_form).first():
+        if Usuario.query.filter_by(login=request.form['login']).first():
             flash('Usuário já existe.')
         else:
-            novo_usuario = Usuario(login=login_form)
-            novo_usuario.set_senha(senha_form)
-            db.session.add(novo_usuario)
+            novo = Usuario(login=request.form['login'])
+            novo.set_senha(request.form['senha'])
+            db.session.add(novo)
             db.session.commit()
-            flash('Usuário registrado com sucesso.')
+            flash('Usuário criado.')
             return redirect(url_for('login'))
     return render_template('registrar.html')
 
@@ -165,11 +134,25 @@ def registrar():
 @login_required
 def visualizar():
     pessoas = Pessoa.query.order_by(Pessoa.classe, Pessoa.nome).all()
-    usuario_logado = Usuario.query.get(session['usuario_id']).login
-    return render_template('visualizar.html', pessoas=pessoas, total=len(pessoas), usuario=usuario_logado)
+    return render_template('visualizar.html', pessoas=pessoas)
 
 # =============================
-# BASE TEMPLATE DEFAULT
+# ROTAS QUE ESTAVAM QUEBRANDO
+# =============================
+@app.route('/relatorios')
+@login_required
+def relatorios():
+    total = Pessoa.query.count()
+    return render_template('relatorios.html', total=total)
+
+@app.route('/graficos')
+@login_required
+def graficos():
+    total = Pessoa.query.count()
+    return render_template('graficos.html', total=total)
+
+# =============================
+# ERRO 404
 # =============================
 @app.errorhandler(404)
 def pagina_nao_encontrada(e):
@@ -181,5 +164,5 @@ def pagina_nao_encontrada(e):
 if __name__ == "__main__":
     with app.app_context():
         db.create_all()
-        print("Tabelas verificadas/criadas com sucesso!")
+        print("Banco pronto!")
     app.run(host="0.0.0.0", port=int(os.environ.get("PORT", 5000)), debug=True)
