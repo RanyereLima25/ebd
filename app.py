@@ -3,8 +3,10 @@ from flask_sqlalchemy import SQLAlchemy
 from werkzeug.security import generate_password_hash, check_password_hash
 from functools import wraps
 from datetime import datetime
+from sqlalchemy import func
 import os
 import pytz
+
 
 app = Flask(__name__)
 
@@ -223,12 +225,96 @@ def visualizar():
     )
 
 
-# ================= RELATÓRIOS =================
+# =====================================================
+# RELATÓRIOS
+# =====================================================
+
 @app.route('/relatorios')
 @login_required
 def relatorios():
+    usuario_logado = Usuario.query.get(session['usuario_id']).login
     total = Pessoa.query.count()
-    return render_template('relatorios.html', total=total)
+    return render_template('relatorios.html', total=total, usuario=usuario_logado)
+
+
+# 📘 Alunos por Classe
+@app.route('/relatorios/por-classe')
+@login_required
+def relatorio_por_classe():
+    dados = db.session.query(
+        Pessoa.classe,
+        func.count(Pessoa.id)
+    ).filter(Pessoa.tipo == 'Aluno') \
+     .group_by(Pessoa.classe) \
+     .order_by(Pessoa.classe).all()
+
+    return render_template('relatorio_por_classe.html', dados=dados)
+
+
+# 📋 Todos os Alunos
+@app.route('/relatorios/todos-alunos')
+@login_required
+def relatorio_todos_alunos():
+    alunos = Pessoa.query.filter_by(tipo='Aluno') \
+        .order_by(Pessoa.nome).all()
+
+    return render_template('relatorio_todos_alunos.html', alunos=alunos)
+
+
+# 🎂 Aniversariantes do Mês
+@app.route('/relatorios/aniversariantes')
+@login_required
+def relatorio_aniversariantes():
+    mes_atual = datetime.now().month
+
+    aniversariantes = Pessoa.query.filter(
+        func.extract('month', Pessoa.nascimento) == mes_atual
+    ).order_by(Pessoa.nome).all()
+
+    return render_template(
+        'relatorio_aniversariantes.html',
+        aniversariantes=aniversariantes
+    )
+
+
+# ⏳ Alunos por Tempo (Ano de Ingresso)
+@app.route('/relatorios/por-tempo')
+@login_required
+def relatorio_por_tempo():
+    dados = db.session.query(
+        Pessoa.ano_ingresso,
+        func.count(Pessoa.id)
+    ).filter(Pessoa.tipo == 'Aluno') \
+     .group_by(Pessoa.ano_ingresso) \
+     .order_by(Pessoa.ano_ingresso).all()
+
+    return render_template('relatorio_por_tempo.html', dados=dados)
+
+
+# 🧑‍💼 Alunos por Profissão
+@app.route('/relatorios/por-profissao')
+@login_required
+def relatorio_alunos_por_profissao():
+    dados = db.session.query(
+        Pessoa.profissao,
+        func.count(Pessoa.id)
+    ).filter(Pessoa.tipo == 'Aluno') \
+     .group_by(Pessoa.profissao) \
+     .order_by(Pessoa.profissao).all()
+
+    return render_template('relatorio_por_profissao.html', dados=dados)
+
+
+# 📄 Relatório PECC
+@app.route('/relatorios/pecc')
+@login_required
+def relatorio_pecc():
+    alunos = Pessoa.query.filter_by(tipo='Aluno') \
+        .order_by(Pessoa.classe, Pessoa.nome).all()
+
+    return render_template('relatorio_pecc.html', alunos=alunos)
+
+
 
 
 # ================= GRÁFICOS =================
