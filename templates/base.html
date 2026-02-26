@@ -49,16 +49,17 @@
         <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarMenu">
             <span class="navbar-toggler-icon"></span>
         </button>
-
-        <div class="collapse navbar-collapse justify-content-end" id="navbarMenu">
+       
+         <div class="collapse navbar-collapse justify-content-end" id="navbarMenu">
             <div class="d-flex flex-wrap gap-2 mt-2 mt-lg-0">
-                <a class="btn btn-light" href="{{ url_for('registrar') }}">Cadastro</a>
+                <a class="btn btn-light" href="{{ url_for('cadastro') }}">Cadastro</a>
                 <a class="btn btn-light" href="{{ url_for('visualizar') }}">Visualizar</a>
                 <a class="btn btn-light" href="{{ url_for('relatorios') }}">Relatórios</a> 
                 <a class="btn btn-light" href="{{ url_for('graficos') }}">Gráficos</a>
                 <a class="btn btn-danger" href="{{ url_for('logout') }}">Sair</a>
             </div>
         </div>
+        
         {% endif %}
     </div>
 </nav>
