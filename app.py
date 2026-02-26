@@ -315,30 +315,42 @@ def relatorio_pecc():
     return render_template('relatorio_pecc.html', alunos=alunos)
 
 
+# =====================================================
+# GRÁFICOS
+# =====================================================
 
-
-# ================= GRÁFICOS =================
 @app.route('/graficos')
 @login_required
 def graficos():
-     # Total geral
     total = Pessoa.query.count()
 
-    # 📊 Gráfico 1 - Alunos por Classe
-    resultado = db.session.query(
+    # 📊 1️⃣ Alunos por Classe
+    resultado_classe = db.session.query(
         Pessoa.classe,
         func.count(Pessoa.id)
     ).filter(Pessoa.tipo == 'Aluno') \
      .group_by(Pessoa.classe).all()
 
-    labels = [r[0] or "Não informada" for r in resultado]
-    valores = [r[1] for r in resultado]
+    labels = [r[0] or "Não informada" for r in resultado_classe]
+    valores = [r[1] for r in resultado_classe]
+
+    # 📊 2️⃣ Alunos por Sexo
+    resultado_genero = db.session.query(
+        Pessoa.sexo,
+        func.count(Pessoa.id)
+    ).filter(Pessoa.tipo == 'Aluno') \
+     .group_by(Pessoa.sexo).all()
+
+    genero_labels = [r[0] or "Não informado" for r in resultado_genero]
+    genero_valores = [r[1] for r in resultado_genero]
 
     return render_template(
         'graficos.html',
         total=total,
         labels=labels,
-        valores=valores
+        valores=valores,
+        genero_labels=genero_labels,
+        genero_valores=genero_valores
     )
 
 # =====================================================
