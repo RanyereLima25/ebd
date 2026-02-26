@@ -338,28 +338,6 @@ def relatorio_por_classe():
     )
 
 
-@app.route('/relatorios/por-classe')
-@login_required
-def relatorio_por_classe():
-    alunos = Pessoa.query.filter_by(tipo='Aluno').all()
-
-    dados = {}
-
-    for aluno in alunos:
-        if aluno.classe not in dados:
-            dados[aluno.classe] = []
-        dados[aluno.classe].append(aluno)
-
-    return render_template(
-        'relatorio_por_classe.html',
-        dados=dados
-    )
-
-
-
-
-
-
 
 # 📋 Todos os Alunos
 @app.route('/relatorios/todos-alunos')
