@@ -327,9 +327,8 @@ def relatorio_por_classe():
     ).filter(Pessoa.tipo == 'Aluno') \
      .group_by(Pessoa.classe) \
      .order_by(Pessoa.classe).all()
-
-    return render_template('relatorio_por_classe.html', dados=dados)
-
+ return render_template('relatorio_por_classe.html', dados_por_classe=dados
+)
 
 # 📋 Todos os Alunos
 @app.route('/relatorios/todos-alunos')
