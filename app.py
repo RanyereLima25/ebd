@@ -278,7 +278,18 @@ def editar(pessoa_id):
         modo_edicao=True
     )
 
+# ================= EXCLUIR =================
 
+@app.route('/excluir/<int:pessoa_id>')
+@login_required
+def excluir(pessoa_id):
+    pessoa = Pessoa.query.get_or_404(pessoa_id)
+
+    db.session.delete(pessoa)
+    db.session.commit()
+
+    flash('Cadastro excluído com sucesso!', 'success')
+    return redirect(url_for('visualizar'))
 
 # ================= VISUALIZAR =================
 @app.route('/visualizar')
