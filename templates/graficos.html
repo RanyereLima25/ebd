@@ -26,8 +26,8 @@
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 <script>
     // Dados recebidos do Flask
-    const labels1 = {{ labels | tojson }};
-    const dados1 = {{ valores | tojson }};
+    const labels1 = {{ labels | default([]) | tojson }};
+    const dados1 = {{ valores | default([]) | tojson }};
     const generoLabels = {{ genero_labels | tojson }};
     const generoValores = {{ genero_valores | tojson }};
 
