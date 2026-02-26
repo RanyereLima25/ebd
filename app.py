@@ -151,7 +151,6 @@ def logout():
 
 # ================= REGISTRAR USUÁRIO =================
 @app.route('/registrar', methods=['GET', 'POST'])
-@login_required
 def registrar():
     if request.method == 'POST':
         login_form = request.form.get('login')
