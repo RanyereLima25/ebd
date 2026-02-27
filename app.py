@@ -321,11 +321,26 @@ def relatorios():
 @app.route('/relatorios/por-classe')
 @login_required
 def relatorio_por_classe():
-    # Buscar todos os alunos ordenados
-    alunos = Pessoa.query.filter_by(tipo='Aluno') \
-        .order_by(Pessoa.classe, Pessoa.nome).all()
+    classe_filtro = request.args.get('classe')
 
-    # Organizar no formato esperado pelo template
+    # 🔹 Buscar todas as classes existentes (para o select)
+    todas_classes = db.session.query(Pessoa.classe) \
+        .filter(Pessoa.tipo == 'Aluno') \
+        .distinct() \
+        .order_by(Pessoa.classe) \
+        .all()
+
+    lista_classes = [c[0] for c in todas_classes if c[0]]
+
+    # 🔹 Buscar alunos (com ou sem filtro)
+    query = Pessoa.query.filter_by(tipo='Aluno')
+
+    if classe_filtro:
+        query = query.filter_by(classe=classe_filtro)
+
+    alunos = query.order_by(Pessoa.classe, Pessoa.nome).all()
+
+    # 🔹 Organizar no formato esperado pelo template
     dados = {}
 
     for aluno in alunos:
@@ -338,7 +353,8 @@ def relatorio_por_classe():
 
     return render_template(
         'relatorio_por_classe.html',
-        dados_por_classe=dados
+        dados_por_classe=dados,
+        lista_classes=lista_classes
     )
 
 
