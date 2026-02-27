@@ -321,16 +321,20 @@ def relatorios():
 @app.route('/relatorios/por-classe')
 @login_required
 def relatorio_por_classe():
-    dados = db.session.query(
-        Pessoa.classe,
-        func.count(Pessoa.id)
-    ).filter(
-        Pessoa.tipo == 'Aluno'
-    ).group_by(
-        Pessoa.classe
-    ).order_by(
-        Pessoa.classe
-    ).all()
+    # Buscar todos os alunos ordenados
+    alunos = Pessoa.query.filter_by(tipo='Aluno') \
+        .order_by(Pessoa.classe, Pessoa.nome).all()
+
+    # Organizar no formato esperado pelo template
+    dados = {}
+
+    for aluno in alunos:
+        classe = aluno.classe or "Não informada"
+
+        if classe not in dados:
+            dados[classe] = []
+
+        dados[classe].append(aluno)
 
     return render_template(
         'relatorio_por_classe.html',
