@@ -323,9 +323,9 @@ def relatorios():
 def relatorio_por_classe():
     classe_filtro = request.args.get('classe')
 
-    # 🔹 Buscar todas as classes existentes (para o select)
+    # 🔹 Buscar todas as classes existentes (independente de maiúscula/minúscula)
     todas_classes = db.session.query(Pessoa.classe) \
-        .filter(Pessoa.tipo == 'Aluno') \
+        .filter(func.lower(func.trim(Pessoa.tipo)) == 'aluno') \
         .distinct() \
         .order_by(Pessoa.classe) \
         .all()
@@ -333,10 +333,12 @@ def relatorio_por_classe():
     lista_classes = [c[0] for c in todas_classes if c[0]]
 
     # 🔹 Buscar alunos (com ou sem filtro)
-    query = Pessoa.query.filter_by(tipo='Aluno')
+    query = Pessoa.query.filter(
+        func.lower(func.trim(Pessoa.tipo)) == 'aluno'
+    )
 
     if classe_filtro:
-        query = query.filter_by(classe=classe_filtro)
+        query = query.filter(Pessoa.classe == classe_filtro)
 
     alunos = query.order_by(Pessoa.classe, Pessoa.nome).all()
 
