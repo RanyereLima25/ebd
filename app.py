@@ -4,9 +4,10 @@ from werkzeug.security import generate_password_hash, check_password_hash
 from functools import wraps
 from datetime import datetime, date
 from sqlalchemy import func,extract
+from models import AulaEBD, Classe, Pessoa, Presenca
+from app import app, db
 import os
 import pytz
-
 
 app = Flask(__name__)
 
