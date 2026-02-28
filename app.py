@@ -118,13 +118,13 @@ class Usuario(db.Model):
 #-----------------------------------------------------------
 
 class AulaEBD(db.Model):
-    __tablename__ = 'aula_ebd'
-
     id = db.Column(db.Integer, primary_key=True)
     data = db.Column(db.Date, nullable=False)
-    trimestre = db.Column(db.String(20))
+    trimestre = db.Column(db.Integer)
     tema = db.Column(db.String(200))
-    created_at = db.Column(db.DateTime, default=datetime.utcnow)
+    classe_id = db.Column(db.Integer, db.ForeignKey('classe.id'))
+
+    classe = db.relationship('Classe', backref='aulas')
 
 
 class Frequencia(db.Model):
@@ -268,9 +268,32 @@ def listar_aulas():
 
     aulas = AulaEBD.query.filter(
         extract('year', AulaEBD.data) == ano_atual
-    ).order_by(AulaEBD.data.desc()).all()
+    ).order_by(AulaEBD.data).all()
 
-    return render_template('aulas.html', aulas=aulas)
+    dados_aulas = []
+
+    for aula in aulas:
+
+        # 👇 AQUI É ONDE ENTRA O CÓDIGO
+        professor = Pessoa.query.filter_by(
+            classe=aula.classe.nome,
+            tipo='Professor'
+        ).first()
+
+        alunos = Pessoa.query.filter_by(
+            classe=aula.classe.nome,
+            tipo='Aluno'
+        ).all()
+        # 👆 AQUI TERMINA
+
+        dados_aulas.append({
+            'aula': aula,
+            'professor': professor,
+            'alunos': alunos
+        })
+
+    return render_template('aulas.html', dados_aulas=dados_aulas)
+    
 
 
 #ROTA REGISTRAR FREQUÊNCIA
