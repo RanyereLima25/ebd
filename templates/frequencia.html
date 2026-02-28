@@ -1,0 +1,29 @@
+{% extends 'base.html' %}
+{% block content %}
+
+<h2>Frequência - {{ aula.data.strftime('%d/%m/%Y') }}</h2>
+<h4>Sala: {{ sala }}</h4>
+
+<form method="POST">
+<table>
+    <tr>
+        <th>Nome</th>
+        <th>Tipo</th>
+        <th>Presente</th>
+    </tr>
+
+    {% for pessoa in pessoas %}
+    <tr>
+        <td>{{ pessoa.nome }}</td>
+        <td>{{ pessoa.tipo }}</td>
+        <td>
+            <input type="checkbox" name="pessoa_{{ pessoa.id }}">
+        </td>
+    </tr>
+    {% endfor %}
+</table>
+
+<button type="submit">Salvar Frequência</button>
+</form>
+
+{% endblock %}
