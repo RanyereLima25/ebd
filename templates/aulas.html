@@ -1,28 +1,38 @@
-{% extends 'base.html' %}
-{% block content %}
+<h3>Aulas da EBD</h3>
 
-<h2>Aulas da EBD</h2>
+{% for item in dados_aulas %}
+<div class="card mb-4">
+    <div class="card-header bg-primary text-white">
+        <strong>{{ item.aula.data.strftime('%d/%m/%Y') }}</strong> |
+        {{ item.aula.tema }} |
+        {{ item.aula.trimestre }}º Trimestre |
+        Classe: {{ item.aula.classe.nome }}
+    </div>
 
-<table>
-    <tr>
-        <th>Data</th>
-        <th>Trimestre</th>
-        <th>Tema</th>
-        <th>Ações</th>
-    </tr>
+    <div class="card-body">
+        <p><strong>Professor:</strong>
+            {{ item.professor.nome if item.professor else 'Não definido' }}
+        </p>
 
-    {% for aula in aulas %}
-    <tr>
-        <td>{{ aula.data.strftime('%d/%m/%Y') }}</td>
-        <td>{{ aula.trimestre }}</td>
-        <td>{{ aula.tema }}</td>
-        <td>
-            <a href="{{ url_for('registrar_frequencia', aula_id=aula.id) }}?sala=Juvenis">
-                Frequência
-            </a>
-        </td>
-    </tr>
-    {% endfor %}
-</table>
-
-{% endblock %}
+        <table class="table table-bordered">
+            <thead>
+                <tr>
+                    <th>Aluno</th>
+                    <th>Presente</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for aluno in item.alunos %}
+                <tr>
+                    <td>{{ aluno.nome }}</td>
+                    <td>
+                        <input type="checkbox"
+                               name="presenca_{{ aluno.id }}_{{ item.aula.id }}">
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+{% endfor %}
