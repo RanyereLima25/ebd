@@ -1,0 +1,22 @@
+{% extends 'base.html' %}
+{% block content %}
+
+<h2>Ranking de Frequência ≥ 75%</h2>
+
+<table>
+    <tr>
+        <th>Nome</th>
+        <th>Tipo</th>
+        <th>% Presença</th>
+    </tr>
+
+    {% for r in ranking %}
+    <tr>
+        <td>{{ r.nome }}</td>
+        <td>{{ r.tipo }}</td>
+        <td>{{ r.percentual }}%</td>
+    </tr>
+    {% endfor %}
+</table>
+
+{% endblock %}
