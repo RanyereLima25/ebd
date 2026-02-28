@@ -4,7 +4,7 @@ from werkzeug.security import generate_password_hash, check_password_hash
 from functools import wraps
 from datetime import datetime, date
 from sqlalchemy import func,extract
-from models import AulaEBD, Classe, Pessoa, Presenca
+from models import Aula, Classe, Pessoa, Presenca
 from app import app, db
 import os
 import pytz
@@ -118,7 +118,7 @@ class Usuario(db.Model):
 
 #-----------------------------------------------------------
 
-class AulaEBD(db.Model):
+class Aula(db.Model):
     __tablename__ = 'aula_ebd'
 
     id = db.Column(db.Integer, primary_key=True)
@@ -140,7 +140,7 @@ class Frequencia(db.Model):
     created_at = db.Column(db.DateTime, default=datetime.utcnow)
 
     pessoa = db.relationship('Pessoa')
-    aula = db.relationship('AulaEBD')
+    aula = db.relationship('Aula')
 
     __table_args__ = (
         db.UniqueConstraint('pessoa_id', 'aula_id', name='unique_presenca'),
@@ -270,7 +270,7 @@ def listar_aulas():
 
     aulas = []
     if classe_id:
-        aulas = AulaEBD.query.filter_by(classe_id=classe_id).all()
+        aulas = Aula.query.filter_by(classe_id=classe_id).all()
 
         for aula in aulas:
             total_alunos = Pessoa.query.filter_by(classe_id=classe_id, tipo="aluno").count()
@@ -286,47 +286,55 @@ def listar_aulas():
     
 
 #ROTA REGISTRAR FREQUÊNCIA
-@app.route('/frequencia/<int:aula_id>', methods=['GET', 'POST'])
-@login_required
-def registrar_frequencia(aula_id):
+@app.route("/frequencia/<int:aula_id>", methods=["GET", "POST"])
+def frequencia_aula(aula_id):
+    aula = Aula.query.get_or_404(aula_id)
 
-    aula = AulaEBD.query.get_or_404(aula_id)
+    classe_id = aula.classe_id
 
-    sala = request.args.get('sala')
+    professor = Pessoa.query.filter_by(classe_id=classe_id, tipo="professor").first()
+    alunos = Pessoa.query.filter_by(classe_id=classe_id, tipo="aluno").all()
 
-    pessoas = Pessoa.query.filter_by(sala=sala).order_by(Pessoa.tipo, Pessoa.nome).all()
+    if request.method == "POST":
+        Presenca.query.filter_by(aula_id=aula_id).delete()
 
-    if request.method == 'POST':
+        marcados = request.form.getlist("presenca")
 
-        for pessoa in pessoas:
-            presente = request.form.get(f'pessoa_{pessoa.id}') == 'on'
+        # Professor
+        if professor:
+            presente = f"prof_{professor.id}" in marcados
+            db.session.add(Presenca(
+                aula_id=aula_id,
+                pessoa_id=professor.id,
+                presente=presente
+            ))
 
-            freq = Frequencia.query.filter_by(
-                pessoa_id=pessoa.id,
-                aula_id=aula.id
-            ).first()
-
-            if not freq:
-                freq = Frequencia(
-                    pessoa_id=pessoa.id,
-                    aula_id=aula.id,
-                    presente=presente
-                )
-                db.session.add(freq)
-            else:
-                freq.presente = presente
+        # Alunos
+        for aluno in alunos:
+            presente = f"aluno_{aluno.id}" in marcados
+            db.session.add(Presenca(
+                aula_id=aula_id,
+                pessoa_id=aluno.id,
+                presente=presente
+            ))
 
         db.session.commit()
-        flash('Frequência salva com sucesso!', 'success')
-        return redirect(url_for('listar_aulas'))
+        return redirect(url_for("listar_aulas", classe_id=classe_id))
 
-    return render_template(
-        'frequencia.html',
-        aula=aula,
-        pessoas=pessoas,
-        sala=sala
-    )
+    # GET
+    presencas = Presenca.query.filter_by(aula_id=aula_id, presente=True).all()
+    alunos_presentes = [p.pessoa_id for p in presencas]
 
+    professor_presente = False
+    if professor:
+        professor_presente = professor.id in alunos_presentes
+
+    return render_template("frequencia.html",
+                           aula=aula,
+                           professor=professor,
+                           alunos=alunos,
+                           alunos_presentes=alunos_presentes,
+                           professor_presente=professor_presente)
 
 
 
@@ -342,10 +350,10 @@ def ranking():
         Pessoa.nome,
         Pessoa.tipo,
         func.count(Frequencia.id).filter(Frequencia.presente == True).label('presencas'),
-        func.count(AulaEBD.id).label('total')
+        func.count(Aula.id).label('total')
     ).join(Frequencia, Pessoa.id == Frequencia.pessoa_id)\
-     .join(AulaEBD, AulaEBD.id == Frequencia.aula_id)\
-     .filter(extract('year', AulaEBD.data) == ano)\
+     .join(Aula, Aula.id == Frequencia.aula_id)\
+     .filter(extract('year', Aula.data) == ano)\
      .group_by(Pessoa.id)\
      .all()
 
