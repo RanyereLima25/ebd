@@ -262,37 +262,28 @@ def cadastro():
 
 # ROTA LISTA DE AULAS
 
-@app.route('/aulas')
-@login_required
+@app.route("/aulas")
 def listar_aulas():
-    ano_atual = date.today().year
+    classe_id = request.args.get("classe_id")
 
-    aulas = AulaEBD.query.filter(
-        extract('year', AulaEBD.data) == ano_atual
-    ).order_by(AulaEBD.data).all()
+    classes = Classe.query.all()
 
-    dados_aulas = []
+    aulas = []
+    if classe_id:
+        aulas = AulaEBD.query.filter_by(classe_id=classe_id).all()
 
-    for aula in aulas:
-        professor = Pessoa.query.filter_by(
-            classe=aula.classe,
-            tipo='Professor'
-        ).first()
+        for aula in aulas:
+            total_alunos = Pessoa.query.filter_by(classe_id=classe_id, tipo="aluno").count()
+            total_presentes = Presenca.query.filter_by(aula_id=aula.id, presente=True).count()
 
-        alunos = Pessoa.query.filter_by(
-            classe=aula.classe,
-            tipo='Aluno'
-        ).all()
+            aula.total_alunos = total_alunos
+            aula.total_presentes = total_presentes
 
-        dados_aulas.append({
-            'aula': aula,
-            'professor': professor,
-            'alunos': alunos
-        })
-
-    return render_template('aulas.html', dados_aulas=dados_aulas)
+    return render_template("aulas.html",
+                           classes=classes,
+                           aulas=aulas,
+                           classe_id=int(classe_id) if classe_id else None)
     
-
 
 #ROTA REGISTRAR FREQUÊNCIA
 @app.route('/frequencia/<int:aula_id>', methods=['GET', 'POST'])
