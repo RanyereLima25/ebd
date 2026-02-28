@@ -1,29 +1,51 @@
-{% extends 'base.html' %}
-{% block content %}
+<h2>Frequência da Aula</h2>
 
-<h2>Frequência - {{ aula.data.strftime('%d/%m/%Y') }}</h2>
-<h4>Sala: {{ sala }}</h4>
+<h3>{{ aula.tema }}</h3>
+<p>
+    {{ aula.data.strftime('%d/%m/%Y') }} • {{ aula.trimestre }}
+</p>
 
 <form method="POST">
-<table>
-    <tr>
-        <th>Nome</th>
-        <th>Tipo</th>
-        <th>Presente</th>
-    </tr>
 
-    {% for pessoa in pessoas %}
-    <tr>
-        <td>{{ pessoa.nome }}</td>
-        <td>{{ pessoa.tipo }}</td>
-        <td>
-            <input type="checkbox" name="pessoa_{{ pessoa.id }}">
-        </td>
-    </tr>
+    <h4>Professor</h4>
+    {% if professor %}
+        <label>
+            <input type="checkbox" name="presenca" value="prof_{{ professor.id }}"
+            {% if professor_presente %}checked{% endif %}>
+            {{ professor.nome }}
+        </label>
+        <br><br>
+    {% else %}
+        <p>Professor não definido</p>
+    {% endif %}
+
+    <h4>Alunos</h4>
+
+    <button type="button" onclick="marcarTodos()">Marcar Todos</button>
+    <button type="button" onclick="desmarcarTodos()">Desmarcar Todos</button>
+
+    <br><br>
+
+    {% for aluno in alunos %}
+        <label>
+            <input type="checkbox" name="presenca"
+                   value="aluno_{{ aluno.id }}"
+                   {% if aluno.id in alunos_presentes %}checked{% endif %}>
+            {{ aluno.nome }}
+        </label>
+        <br>
     {% endfor %}
-</table>
 
-<button type="submit">Salvar Frequência</button>
+    <br>
+    <button type="submit">Salvar</button>
 </form>
 
-{% endblock %}
+<script>
+function marcarTodos() {
+    document.querySelectorAll('input[type="checkbox"]').forEach(cb => cb.checked = true);
+}
+
+function desmarcarTodos() {
+    document.querySelectorAll('input[type="checkbox"]').forEach(cb => cb.checked = false);
+}
+</script>
