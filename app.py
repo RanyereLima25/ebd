@@ -115,6 +115,36 @@ class Usuario(db.Model):
     def checar_senha(self, senha):
         return check_password_hash(self.senha_hash, senha)
 
+#-----------------------------------------------------------
+
+class AulaEBD(db.Model):
+    __tablename__ = 'aula_ebd'
+
+    id = db.Column(db.Integer, primary_key=True)
+    data = db.Column(db.Date, nullable=False)
+    trimestre = db.Column(db.String(20))
+    tema = db.Column(db.String(200))
+    created_at = db.Column(db.DateTime, default=datetime.utcnow)
+
+
+class Frequencia(db.Model):
+    __tablename__ = 'frequencia'
+
+    id = db.Column(db.Integer, primary_key=True)
+
+    pessoa_id = db.Column(db.Integer, db.ForeignKey('pessoa.id'), nullable=False)
+    aula_id = db.Column(db.Integer, db.ForeignKey('aula_ebd.id'), nullable=False)
+
+    presente = db.Column(db.Boolean, default=False)
+    created_at = db.Column(db.DateTime, default=datetime.utcnow)
+
+    pessoa = db.relationship('Pessoa')
+    aula = db.relationship('AulaEBD')
+
+    __table_args__ = (
+        db.UniqueConstraint('pessoa_id', 'aula_id', name='unique_presenca'),
+    )
+
 # =====================================================
 # DECORADOR LOGIN REQUIRED
 # =====================================================
@@ -228,6 +258,100 @@ def cadastro():
     usuario_logado = Usuario.query.get(session['usuario_id']).login
     return render_template('cadastro.html', usuario=usuario_logado)
 
+
+# ROTA LISTA DE AULAS
+
+@app.route('/aulas')
+@login_required
+def listar_aulas():
+    ano_atual = date.today().year
+
+    aulas = AulaEBD.query.filter(
+        extract('year', AulaEBD.data) == ano_atual
+    ).order_by(AulaEBD.data.desc()).all()
+
+    return render_template('aulas.html', aulas=aulas)
+
+
+#ROTA REGISTRAR FREQUÊNCIA
+@app.route('/frequencia/<int:aula_id>', methods=['GET', 'POST'])
+@login_required
+def registrar_frequencia(aula_id):
+
+    aula = AulaEBD.query.get_or_404(aula_id)
+
+    sala = request.args.get('sala')
+
+    pessoas = Pessoa.query.filter_by(sala=sala).order_by(Pessoa.tipo, Pessoa.nome).all()
+
+    if request.method == 'POST':
+
+        for pessoa in pessoas:
+            presente = request.form.get(f'pessoa_{pessoa.id}') == 'on'
+
+            freq = Frequencia.query.filter_by(
+                pessoa_id=pessoa.id,
+                aula_id=aula.id
+            ).first()
+
+            if not freq:
+                freq = Frequencia(
+                    pessoa_id=pessoa.id,
+                    aula_id=aula.id,
+                    presente=presente
+                )
+                db.session.add(freq)
+            else:
+                freq.presente = presente
+
+        db.session.commit()
+        flash('Frequência salva com sucesso!', 'success')
+        return redirect(url_for('listar_aulas'))
+
+    return render_template(
+        'frequencia.html',
+        aula=aula,
+        pessoas=pessoas,
+        sala=sala
+    )
+
+
+
+
+#ROTA RANKING 75%
+
+@app.route('/ranking')
+@login_required
+def ranking():
+
+    ano = date.today().year
+
+    resultado = db.session.query(
+        Pessoa.nome,
+        Pessoa.tipo,
+        func.count(Frequencia.id).filter(Frequencia.presente == True).label('presencas'),
+        func.count(AulaEBD.id).label('total')
+    ).join(Frequencia, Pessoa.id == Frequencia.pessoa_id)\
+     .join(AulaEBD, AulaEBD.id == Frequencia.aula_id)\
+     .filter(extract('year', AulaEBD.data) == ano)\
+     .group_by(Pessoa.id)\
+     .all()
+
+    ranking_lista = []
+
+    for r in resultado:
+        if r.total > 0:
+            percentual = round((r.presencas / r.total) * 100, 2)
+            if percentual >= 75:
+                ranking_lista.append({
+                    'nome': r.nome,
+                    'tipo': r.tipo,
+                    'percentual': percentual
+                })
+
+    ranking_lista.sort(key=lambda x: x['percentual'], reverse=True)
+
+    return render_template('ranking.html', ranking=ranking_lista)
 
 
 # =====================================================
