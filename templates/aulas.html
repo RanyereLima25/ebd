@@ -1,38 +1,43 @@
-<h3>Aulas da EBD</h3>
+<h2>Histórico de Aulas</h2>
 
-{% for item in dados_aulas %}
-<div class="card mb-4">
-    <div class="card-header bg-primary text-white">
-        <strong>{{ item.aula.data.strftime('%d/%m/%Y') }}</strong> |
-        {{ item.aula.tema }} |
-        {{ item.aula.trimestre }}º Trimestre |
-        Classe: {{ item.aula.classe.nome }}
-    </div>
+<form method="GET">
+    <label>Classe:</label>
+    <select name="classe_id" onchange="this.form.submit()">
+        <option value="">Selecione a Classe</option>
+        {% for classe in classes %}
+            <option value="{{ classe.id }}"
+                {% if classe.id == classe_id %}selected{% endif %}>
+                {{ classe.nome }}
+            </option>
+        {% endfor %}
+    </select>
+</form>
 
-    <div class="card-body">
-        <p><strong>Professor:</strong>
-            {{ item.professor.nome if item.professor else 'Não definido' }}
-        </p>
+<br>
 
-        <table class="table table-bordered">
-            <thead>
-                <tr>
-                    <th>Aluno</th>
-                    <th>Presente</th>
-                </tr>
-            </thead>
-            <tbody>
-                {% for aluno in item.alunos %}
-                <tr>
-                    <td>{{ aluno.nome }}</td>
-                    <td>
-                        <input type="checkbox"
-                               name="presenca_{{ aluno.id }}_{{ item.aula.id }}">
-                    </td>
-                </tr>
-                {% endfor %}
-            </tbody>
-        </table>
-    </div>
-</div>
-{% endfor %}
+<table border="1" width="100%">
+    <thead>
+        <tr>
+            <th>Data</th>
+            <th>Trimestre</th>
+            <th>Tema</th>
+            <th>Presenças</th>
+            <th>Ações</th>
+        </tr>
+    </thead>
+    <tbody>
+        {% for aula in aulas %}
+        <tr>
+            <td>{{ aula.data.strftime('%d/%m/%Y') }}</td>
+            <td>{{ aula.trimestre }}</td>
+            <td>{{ aula.tema }}</td>
+            <td>{{ aula.total_presentes }} / {{ aula.total_alunos }}</td>
+            <td>
+                <a href="{{ url_for('frequencia_aula', aula_id=aula.id) }}">
+                    Frequência
+                </a>
+            </td>
+        </tr>
+        {% endfor %}
+    </tbody>
+</table>
