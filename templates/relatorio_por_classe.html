@@ -22,18 +22,42 @@
 <h2 class="mb-4 titulo-relatorio">Relatório: Alunos por Classe</h2>
 
 <!-- 🔍 Filtro por classe (oculta na impressão) -->
-<form method="get" class="form-classe no-print" style="margin-bottom: 20px;">
-    <label for="classe"><strong>Selecione a Classe:</strong></label>
-    <select name="classe" id="classe" onchange="this.form.submit()" style="margin-left: 10px; padding: 5px;">
-    <option value="">Todas as Classes</option>
-      {% for classe_nome in lista_classes %}
-        <option value="{{ classe_nome }}" 
-            {% if request.args.get('classe') == classe_nome %}selected{% endif %}>
-            {{ classe_nome }}
-        </option>
-      {% endfor %}
-    </select>  
+
+<form method="get" class="form-classe no-print" style="margin-bottom: 20px; display: flex; gap: 20px; flex-wrap: wrap;">
+
+    <!-- 🔹 Filtro por Tipo -->
+    <div>
+        <label for="tipo"><strong>Selecione o Tipo:</strong></label>
+        <select name="tipo" id="tipo" onchange="this.form.submit()" style="margin-left: 10px; padding: 5px;">
+            <option value="">Todos</option>
+            {% for tipo in lista_tipos %}
+                <option value="{{ tipo }}" 
+                    {% if request.args.get('tipo') == tipo %}selected{% endif %}>
+                    {{ tipo }}
+                </option>
+            {% endfor %}
+        </select>
+    </div>
+
+    <!-- 🔹 Filtro por Classe -->
+    <div>
+        <label for="classe"><strong>Selecione a Classe:</strong></label>
+        <select name="classe" id="classe" onchange="this.form.submit()" style="margin-left: 10px; padding: 5px;">
+            <option value="">Todas</option>
+            {% for classe_nome in lista_classes %}
+                <option value="{{ classe_nome }}" 
+                    {% if request.args.get('classe') == classe_nome %}selected{% endif %}>
+                    {{ classe_nome }}
+                </option>
+            {% endfor %}
+        </select>
+    </div>
+
 </form>
+
+
+
+
 
 <!-- 🔥 Tabela formatada -->
 <table class="styled-table" style="width: 100%; border-collapse: collapse; margin-bottom: 20px;">
