@@ -1,0 +1,28 @@
+{% extends 'base.html' %}
+{% block content %}
+
+<h2>Aulas da EBD</h2>
+
+<table>
+    <tr>
+        <th>Data</th>
+        <th>Trimestre</th>
+        <th>Tema</th>
+        <th>Ações</th>
+    </tr>
+
+    {% for aula in aulas %}
+    <tr>
+        <td>{{ aula.data.strftime('%d/%m/%Y') }}</td>
+        <td>{{ aula.trimestre }}</td>
+        <td>{{ aula.tema }}</td>
+        <td>
+            <a href="{{ url_for('registrar_frequencia', aula_id=aula.id) }}?sala=Juvenis">
+                Frequência
+            </a>
+        </td>
+    </tr>
+    {% endfor %}
+</table>
+
+{% endblock %}
