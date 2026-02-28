@@ -118,13 +118,13 @@ class Usuario(db.Model):
 #-----------------------------------------------------------
 
 class AulaEBD(db.Model):
+    __tablename__ = 'aula_ebd'
+
     id = db.Column(db.Integer, primary_key=True)
     data = db.Column(db.Date, nullable=False)
     trimestre = db.Column(db.Integer)
     tema = db.Column(db.String(200))
-    classe_id = db.Column(db.Integer, db.ForeignKey('classe.id'))
-
-    classe = db.relationship('Classe', backref='aulas')
+    classe = db.Column(db.String(100))  # <-- AGORA É TEXTO
 
 
 class Frequencia(db.Model):
@@ -273,18 +273,15 @@ def listar_aulas():
     dados_aulas = []
 
     for aula in aulas:
-
-        # 👇 AQUI É ONDE ENTRA O CÓDIGO
         professor = Pessoa.query.filter_by(
-            classe=aula.classe.nome,
+            classe=aula.classe,
             tipo='Professor'
         ).first()
 
         alunos = Pessoa.query.filter_by(
-            classe=aula.classe.nome,
+            classe=aula.classe,
             tipo='Aluno'
         ).all()
-        # 👆 AQUI TERMINA
 
         dados_aulas.append({
             'aula': aula,
