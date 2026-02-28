@@ -2,16 +2,20 @@
 
 <h3>{{ aula.tema }}</h3>
 <p>
-    {{ aula.data.strftime('%d/%m/%Y') }} • {{ aula.trimestre }}
+    {{ aula.data.strftime('%d/%m/%Y') }} • {{ aula.trimestre }}º Trimestre
 </p>
 
 <form method="POST">
 
+    <!-- ================= PROFESSOR ================= -->
     <h4>Professor</h4>
+
     {% if professor %}
         <label>
-            <input type="checkbox" name="presenca" value="prof_{{ professor.id }}"
-            {% if professor_presente %}checked{% endif %}>
+            <input type="checkbox"
+                   name="presenca"
+                   value="{{ professor.id }}"
+                   {% if professor.id in presentes_ids %}checked{% endif %}>
             {{ professor.nome }}
         </label>
         <br><br>
@@ -19,6 +23,7 @@
         <p>Professor não definido</p>
     {% endif %}
 
+    <!-- ================= ALUNOS ================= -->
     <h4>Alunos</h4>
 
     <button type="button" onclick="marcarTodos()">Marcar Todos</button>
@@ -28,9 +33,10 @@
 
     {% for aluno in alunos %}
         <label>
-            <input type="checkbox" name="presenca"
-                   value="aluno_{{ aluno.id }}"
-                   {% if aluno.id in alunos_presentes %}checked{% endif %}>
+            <input type="checkbox"
+                   name="presenca"
+                   value="{{ aluno.id }}"
+                   {% if aluno.id in presentes_ids %}checked{% endif %}>
             {{ aluno.nome }}
         </label>
         <br>
@@ -42,10 +48,10 @@
 
 <script>
 function marcarTodos() {
-    document.querySelectorAll('input[type="checkbox"]').forEach(cb => cb.checked = true);
+    document.querySelectorAll('input[name="presenca"]').forEach(cb => cb.checked = true);
 }
 
 function desmarcarTodos() {
-    document.querySelectorAll('input[type="checkbox"]').forEach(cb => cb.checked = false);
+    document.querySelectorAll('input[name="presenca"]').forEach(cb => cb.checked = false);
 }
 </script>
