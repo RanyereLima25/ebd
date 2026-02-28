@@ -6,6 +6,7 @@ from datetime import datetime, date
 from sqlalchemy import func, extract
 import os
 import pytz
+from models import Classe
 
 app = Flask(__name__)
 
@@ -144,6 +145,19 @@ class Frequencia(db.Model):
         db.UniqueConstraint('pessoa_id', 'aula_id', name='unique_presenca'),
     )
 
+#-------- foi colocado
+class Classe(db.Model):
+    __tablename__ = 'classe'
+
+    id = db.Column(db.Integer, primary_key=True)
+    nome = db.Column(db.String(100), nullable=False)
+    professor_id = db.Column(db.Integer, db.ForeignKey('pessoa.id'))
+
+    professor = db.relationship('Pessoa', backref='classes')
+
+
+
+
 # =====================================================
 # DECORADOR LOGIN REQUIRED
 # =====================================================
@@ -264,7 +278,7 @@ def cadastro():
 def listar_aulas():
     classe_id = request.args.get("classe_id")
 
-    classes = Classe.query.all()
+    classes = db.session.query(AulaEBD.classe).distinct().all()
 
     aulas = []
     if classe_id:
