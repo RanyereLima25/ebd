@@ -322,40 +322,52 @@ def relatorios():
 @login_required
 def relatorio_por_classe():
     classe_filtro = request.args.get('classe')
+    tipo_filtro = request.args.get('tipo')
 
+    query = Pessoa.query
+
+    # 🔹 Filtro por tipo (case insensitive)
+    if tipo_filtro:
+        query = query.filter(func.lower(Pessoa.tipo) == tipo_filtro.lower())
+
+    # 🔹 Filtro por classe
+    if classe_filtro:
+        query = query.filter(Pessoa.classe == classe_filtro)
+
+    pessoas = query.order_by(Pessoa.classe, Pessoa.nome).all()
+
+    # 🔹 Buscar classes distintas
     todas_classes = db.session.query(Pessoa.classe) \
-        .filter(func.lower(Pessoa.tipo) == 'aluno') \
         .distinct() \
         .order_by(Pessoa.classe) \
         .all()
 
     lista_classes = [c[0] for c in todas_classes if c[0]]
 
-    query = Pessoa.query.filter(
-        func.lower(Pessoa.tipo) == 'aluno'
-    )
+    # 🔹 Buscar tipos distintos (exatamente como estão no banco)
+    todos_tipos = db.session.query(Pessoa.tipo) \
+        .distinct() \
+        .order_by(Pessoa.tipo) \
+        .all()
 
-    if classe_filtro:
-        query = query.filter(Pessoa.classe == classe_filtro)
+    lista_tipos = [t[0] for t in todos_tipos if t[0]]
 
-    alunos = query.order_by(Pessoa.classe, Pessoa.nome).all()
-
+    # 🔹 Organizar por classe
     dados = {}
-
-    for aluno in alunos:
-        classe = aluno.classe or "Não informada"
+    for pessoa in pessoas:
+        classe = pessoa.classe or "Não informada"
 
         if classe not in dados:
             dados[classe] = []
 
-        dados[classe].append(aluno)
+        dados[classe].append(pessoa)
 
     return render_template(
         'relatorio_por_classe.html',
         dados_por_classe=dados,
-        lista_classes=lista_classes
+        lista_classes=lista_classes,
+        lista_tipos=lista_tipos
     )
-
 
 
 # 📋 Todos os Alunos
